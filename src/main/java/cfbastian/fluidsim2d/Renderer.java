@@ -1,14 +1,16 @@
 package cfbastian.fluidsim2d;
 
-import cfbastian.fluidsim2d.Application;
+import cfbastian.fluidsim2d.simulation.Renderable;
+
+import java.util.Arrays;
 
 public class Renderer {
 
     static int[] pixels = new int[Application.width * Application.height];
 
-
-    public int[] render() {
-        drawCircle(1280/2, 720/2, 50, 0xFFFFFFFF);
+    public int[] render(Renderable simulation) {
+        Arrays.fill(pixels, 0xFF101010);
+        simulation.render(this);
 
         return pixels;
     }
@@ -32,11 +34,15 @@ public class Renderer {
         int rSqrd = r*r;
 
         for (int x1 = -r; x1 <= r; x1++) {
-            for (int y1 = 0; y1 < (int) (Math.sqrt(rSqrd - x1*x1) + 0.5); y1++) {
-                setPixel(x + x1, y + y1, color);
-                setPixel(x + x1, y - y1, color);
-                setPixel(x - x1, y + y1, color);
-                setPixel(x - x1, y - y1, color);
+            if(x1 + x >= 0 && x1 + x < Application.width) {
+                for (int y1 = 0; y1 < (int) (Math.sqrt(rSqrd - x1 * x1) + 0.5); y1++) {
+                    if(y1 + y >= 0 && y1 + y < Application.height) {
+                        setPixel(x + x1, y + y1, color);
+                        setPixel(x + x1, y - y1, color);
+                        setPixel(x - x1, y + y1, color);
+                        setPixel(x - x1, y - y1, color);
+                    }
+                }
             }
         }
     }
