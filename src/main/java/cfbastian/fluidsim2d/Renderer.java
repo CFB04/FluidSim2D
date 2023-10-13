@@ -26,7 +26,7 @@ public class Renderer {
 
     public void setPixel(int x, int y, int color)
     {
-        pixels[x + Application.width * y] = color;
+        if(x >= 0 && x < Application.width && y >= 0 && y < Application.height) pixels[x + Application.width * y] = color;
     }
 
     public void drawCircle(int x, int y, int r, int color)
@@ -34,15 +34,11 @@ public class Renderer {
         int rSqrd = r*r;
 
         for (int x1 = -r; x1 <= r; x1++) {
-            if(x - Math.abs(x1) >= 0 && x + Math.abs(x1) < Application.width) {
-                for (int y1 = 0; y1 < (int) (Math.sqrt(rSqrd - x1 * x1) + 0.5); y1++) {
-                    if(y - y1 >= 0 && y + y1 < Application.height) {
-                        setPixel(x + x1, y + y1, color);
-                        setPixel(x + x1, y - y1, color);
-                        setPixel(x - x1, y + y1, color);
-                        setPixel(x - x1, y - y1, color);
-                    }
-                }
+            for (int y1 = 0; y1 < (int) (Math.sqrt(rSqrd - x1 * x1) + 0.5); y1++) {
+                setPixel(x + x1, y + y1, color);
+                setPixel(x + x1, y - y1, color);
+                setPixel(x - x1, y + y1, color);
+                setPixel(x - x1, y - y1, color);
             }
         }
     }

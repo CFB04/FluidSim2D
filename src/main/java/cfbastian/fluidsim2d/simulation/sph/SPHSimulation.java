@@ -1,13 +1,15 @@
 package cfbastian.fluidsim2d.simulation.sph;
 
+import cfbastian.fluidsim2d.Application;
 import cfbastian.fluidsim2d.Renderer;
-import cfbastian.fluidsim2d.simulation.Renderable;
-import cfbastian.fluidsim2d.simulation.Updateable;
+import cfbastian.fluidsim2d.simulation.Simulation;
+import cfbastian.fluidsim2d.simulation.util.Bounds;
 
-public class SPHSimulation implements Updateable, Renderable {
+public class SPHSimulation extends Simulation {
     SPHParticle[] particles;
 
-    public SPHSimulation(int numParticles) {
+    public SPHSimulation(Bounds bounds, int numParticles) {
+        super(bounds);
         this.particles = new SPHParticle[numParticles];
     }
 
@@ -16,8 +18,31 @@ public class SPHSimulation implements Updateable, Renderable {
     {
         for (SPHParticle p : particles)
         {
-            p.accelerate(10f * dt, 0f);
-            p.update();
+            p.accelerate(0f, -9.81f * dt);
+            float xNew = p.getX() + p.getDx() * dt;
+            float yNew = p.getY() + p.getDy() * dt;
+            if(xNew < bounds.getxMin())
+            {
+                xNew = 2 * bounds.getxMin() - xNew;
+                p.setDx(-p.getDx());
+            }
+            if(xNew > bounds.getxMax())
+            {
+                xNew = 2 * bounds.getxMax() - xNew;
+                p.setDx(-p.getDx());
+            }
+            if(yNew < bounds.getyMin())
+            {
+                yNew = 2 * bounds.getyMin() - yNew;
+                p.setDy(-p.getDy());
+            }
+            if(yNew > bounds.getyMax())
+            {
+                yNew = 2 * bounds.getyMax() - yNew;
+                p.setDy(-p.getDy());
+            }
+            p.setX(xNew);
+            p.setY(yNew);
         }
     }
 
@@ -27,6 +52,12 @@ public class SPHSimulation implements Updateable, Renderable {
 
     @Override
     public void render(Renderer renderer) {
-        for (SPHParticle p : particles) renderer.drawCircle((int) p.getX(), (int) p.getY(), (int) p.getR(), p.getColor());
+        for (SPHParticle p : particles)
+        {
+            float x = p.getX() * Application.width / (bounds.getxMax() - bounds.getxMin());
+            float y = ((bounds.getyMax() - bounds.getyMin()) - p.getY()) * Application.height / (bounds.getyMax() - bounds.getyMin());
+            float r = p.getR() * Application.width / (bounds.getxMax() - bounds.getxMin());
+            renderer.drawCircle((int) x, (int) y, (int) r, p.getColor());
+        }
     }
 }

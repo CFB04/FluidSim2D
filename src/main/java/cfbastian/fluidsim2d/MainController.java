@@ -1,8 +1,9 @@
 package cfbastian.fluidsim2d;
 
-import cfbastian.fluidsim2d.simulation.Renderable;
+import cfbastian.fluidsim2d.simulation.Simulation;
 import cfbastian.fluidsim2d.simulation.sph.SPHParticle;
 import cfbastian.fluidsim2d.simulation.sph.SPHSimulation;
+import cfbastian.fluidsim2d.simulation.util.Bounds;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.image.ImageView;
@@ -24,7 +25,7 @@ public class MainController {
     Renderer renderer;
     RenderLoop renderLoop;
 
-    Renderable simulation;
+    Simulation simulation;
 
     static int[] pixels = new int[Application.width * Application.height];
 
@@ -37,8 +38,8 @@ public class MainController {
         renderer = new Renderer();
         renderLoop = new RenderLoop();
 
-        simulation = new SPHSimulation(1);
-        ((SPHSimulation) simulation).getParticles()[0] = new SPHParticle(1280/2f, 720/2f, 0f, 0f, 0xFF22FFFF, 40f);
+        simulation = new SPHSimulation(new Bounds(0f, 16f, 0f, 9f), 1);
+        ((SPHSimulation) simulation).getParticles()[0] = new SPHParticle(16/2f, 9/2f, 4.532852f, 0f, 0xFF22FFFF, 0.5f);
 
         imageView.setFitWidth(Application.width);
         imageView.setFitHeight(Application.height);

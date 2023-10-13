@@ -1,8 +1,8 @@
 package cfbastian.fluidsim2d.simulation;
 
 public class Particle {
-    private float x, y, dx, dy;
-    private int color;
+    protected float x, y, dx, dy;
+    protected int color;
 
     public Particle(float x, float y, float dx, float dy, int color) {
         this.x = x;
