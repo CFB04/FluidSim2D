@@ -1,4 +1,4 @@
-package cfbastian.fluidsim2d.fluidsim2d;
+package cfbastian.fluidsim2d;
 
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;

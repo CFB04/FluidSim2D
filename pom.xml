@@ -61,7 +61,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                cfbastian.fluidsim2d.fluidsim2d/cfbastian.fluidsim2d.fluidsim2d.Application
+                                cfbastian.fluidsim2d/cfbastian.fluidsim2d.Application
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

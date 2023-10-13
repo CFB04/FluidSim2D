@@ -1,4 +1,6 @@
-package cfbastian.fluidsim2d.fluidsim2d;
+package cfbastian.fluidsim2d;
+
+import cfbastian.fluidsim2d.Application;
 
 public class Renderer {
 
