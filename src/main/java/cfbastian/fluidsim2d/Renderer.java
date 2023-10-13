@@ -34,9 +34,9 @@ public class Renderer {
         int rSqrd = r*r;
 
         for (int x1 = -r; x1 <= r; x1++) {
-            if(x1 + x >= 0 && x1 + x < Application.width) {
+            if(x - Math.abs(x1) >= 0 && x + Math.abs(x1) < Application.width) {
                 for (int y1 = 0; y1 < (int) (Math.sqrt(rSqrd - x1 * x1) + 0.5); y1++) {
-                    if(y1 + y >= 0 && y1 + y < Application.height) {
+                    if(y - y1 >= 0 && y + y1 < Application.height) {
                         setPixel(x + x1, y + y1, color);
                         setPixel(x + x1, y - y1, color);
                         setPixel(x - x1, y + y1, color);

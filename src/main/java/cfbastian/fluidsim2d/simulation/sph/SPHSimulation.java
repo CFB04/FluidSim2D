@@ -16,7 +16,7 @@ public class SPHSimulation implements Updateable, Renderable {
     {
         for (SPHParticle p : particles)
         {
-            p.accelerate(0, 10f * dt);
+            p.accelerate(10f * dt, 0f);
             p.update();
         }
     }
