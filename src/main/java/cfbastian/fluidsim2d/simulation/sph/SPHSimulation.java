@@ -7,6 +7,7 @@ import cfbastian.fluidsim2d.simulation.util.Bounds;
 
 public class SPHSimulation extends Simulation {
     SPHParticle[] particles;
+    float decay = 0.7f;
 
     public SPHSimulation(Bounds bounds, int numParticles) {
         super(bounds);
@@ -24,22 +25,22 @@ public class SPHSimulation extends Simulation {
             if(xNew < bounds.getxMin())
             {
                 xNew = 2 * bounds.getxMin() - xNew;
-                p.setDx(-p.getDx());
+                p.setDx(-p.getDx() * decay);
             }
             if(xNew > bounds.getxMax())
             {
                 xNew = 2 * bounds.getxMax() - xNew;
-                p.setDx(-p.getDx());
+                p.setDx(-p.getDx() * decay);
             }
             if(yNew < bounds.getyMin())
             {
                 yNew = 2 * bounds.getyMin() - yNew;
-                p.setDy(-p.getDy());
+                p.setDy(-p.getDy() * decay);
             }
             if(yNew > bounds.getyMax())
             {
                 yNew = 2 * bounds.getyMax() - yNew;
-                p.setDy(-p.getDy());
+                p.setDy(-p.getDy() * decay);
             }
             p.setX(xNew);
             p.setY(yNew);
