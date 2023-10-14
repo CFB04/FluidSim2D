@@ -41,6 +41,10 @@ public class IterativeSimulation extends Simulation {
     public void update(float dt)
     {
         for (IterativeParticle p : particles)
-            p.updateRK4(dt);
+        {
+            System.out.print(" {" + p.getX() + ", " + p.getY() + "} ");
+            p.updateCircular(dt);
+        }
+        System.out.println();
     }
 }

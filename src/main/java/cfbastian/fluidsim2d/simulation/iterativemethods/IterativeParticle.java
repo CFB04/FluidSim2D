@@ -4,6 +4,8 @@ import cfbastian.fluidsim2d.simulation.Particle;
 
 public class IterativeParticle extends Particle {
 
+    private float speed = 8f;
+
     public IterativeParticle(float x, float y, float dx, float dy, int color) {
         super(x, y, dx, dy, color);
     }
@@ -69,18 +71,50 @@ public class IterativeParticle extends Particle {
 
     public void updateYoshidaOrder4()
     {
+//        dx = v2 *
+    }
 
+
+    public void updateCircular(float dt)
+    {
+        float v1x = getDx(x, y, dt);
+        float v1y = getDy(x, y, dt);
+        float m1 = (float) Math.sqrt(v1x*v1x + v1y*v1y);
+        if(m1 == 0f) return;
+        float v2x = getDx(x + v1x / m1, y + v1y / m1, dt);
+        float v2y = getDy(x + v1x / m1, y + v1y / m1, dt);
+        float m2 = (float) Math.sqrt(v2x*v2x + v2y*v2y);
+        if(m2 == 0f) return;
+        float dot = (v1x * v2x + v1y * v2y) / (m1 * m2);
+        float rPartial = (float) Math.sqrt(1f - dot*dot);
+        if(rPartial == 0f)
+        {
+            dx = v1x;
+            dy = v1y;
+            update();
+            return;
+        }
+        float r = dot / rPartial;
+        if(r == 0f) return;
+        float centerX = x - r * v1x / m1;
+        float centerY = y + r * v1y / m1;
+        float rInv = 1f/r;
+        double a = (rInv * speed * dt + Math.atan2(y - centerY, x - centerX));
+        x = (float) (r * Math.sin(a));
+        y = (float) (r * Math.cos(a));
     }
 
     public float getDx(float x, float y, float dt)
     {
         float r = (float) Math.sqrt(x*x + y*y);
-        return y / r * 32f * dt;
+        if(r == 0f) return 0f;
+        return -y / r * speed * dt;
     }
 
     public float getDy(float x, float y, float dt)
     {
         float r = (float) Math.sqrt(x*x + y*y);
-        return -x / r * 32f * dt;
+        if(r == 0f) return 0f;
+        return x / r * speed * dt;
     }
 }
