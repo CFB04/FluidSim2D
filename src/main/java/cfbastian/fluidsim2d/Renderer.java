@@ -1,6 +1,7 @@
 package cfbastian.fluidsim2d;
 
 import cfbastian.fluidsim2d.simulation.Renderable;
+import cfbastian.fluidsim2d.simulation.sph.SPHParticle;
 
 import java.util.Arrays;
 
@@ -8,8 +9,18 @@ public class Renderer {
 
     static int[] pixels = new int[Application.width * Application.height];
 
+    SPHParticle p = new SPHParticle(Application.width/2, Application.height/2, 0f, 0f, 0x0022FFFF, Application.height/3f);
+    
     public int[] render(Renderable simulation) {
         Arrays.fill(pixels, 0xFF101010);
+
+//        for (int i = 0; i < pixels.length; i++) {
+//            int x = i % Application.width, y = i/Application.width;
+//            x = (int) (x - p.getX());
+//            y = (int) (y - p.getY());
+//            pixels[i] = p.getColor() + ((int) (p.getInfluence((float) Math.sqrt(x*x + y*y)) * 255) << 24);
+//        }
+        
         simulation.render(this);
 
         return pixels;

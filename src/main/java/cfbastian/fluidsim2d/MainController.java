@@ -2,6 +2,7 @@ package cfbastian.fluidsim2d;
 
 import cfbastian.fluidsim2d.simulation.Simulation;
 import cfbastian.fluidsim2d.simulation.iterativemethods.IterativeSimulation;
+import cfbastian.fluidsim2d.simulation.pic.PICSimulation;
 import cfbastian.fluidsim2d.simulation.sph.SPHParticle;
 import cfbastian.fluidsim2d.simulation.sph.SPHSimulation;
 import cfbastian.fluidsim2d.simulation.util.Bounds;
@@ -39,9 +40,11 @@ public class MainController {
         renderer = new Renderer();
         renderLoop = new RenderLoop();
 
-        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
-//        simulation = new SPHSimulation(new Bounds(0f, 16f, 0f, 9f), 1);
-//        ((SPHSimulation) simulation).getParticles()[0] = new SPHParticle(16/2f, 9/2f, -4.532852f, 10f, 0xFF22FFFF, 0.5f);
+//        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
+//        simulation = new SPHSimulation(
+//                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
+//                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
+        simulation = new PICSimulation(new Bounds(0f, 16f, 0f, 9f), new Bounds(4f, 12f, 3f, 7.5f), 16*9*2*2, 16*2, 9*2 + 1,16*2 + 1);
 
         imageView.setFitWidth(Application.width);
         imageView.setFitHeight(Application.height);

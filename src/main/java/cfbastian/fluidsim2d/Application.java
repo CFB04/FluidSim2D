@@ -18,6 +18,7 @@ public class Application extends javafx.application.Application {
         scene.setFill(new Color(0.1, 0.1, 0.1, 1));
         scene.getRoot().requestFocus();
 
+//        stage.setFullScreen(true);
         stage.setTitle("Fluid Sim 2D");
         stage.setScene(scene);
         stage.setResizable(false);
