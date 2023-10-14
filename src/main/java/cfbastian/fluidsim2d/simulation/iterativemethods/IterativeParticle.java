@@ -69,17 +69,16 @@ public class IterativeParticle extends Particle {
         update();
     }
 
-    public String updateCircular(float dt, float du)
+    public void updateCircular(float dt, float du)
     {
-        if(Float.isNaN(x)) System.out.println("Evil");
         float v1x = du * getDx(x, y, dt);
         float v1y = du * getDy(x, y, dt);
         float m1 = (float) Math.sqrt(v1x*v1x + v1y*v1y);
-        if(m1 == 0f) return "";
+        if(m1 == 0f) return;
         float v2x = du * getDx(x + v1x / m1, y + v1y / m1, dt);
         float v2y = du * getDy(x + v1x / m1, y + v1y / m1, dt);
         float m2 = (float) Math.sqrt(v2x*v2x + v2y*v2y);
-        if(m2 == 0f) return "m2";
+        if(m2 == 0f) return;
         float dot = (v1x * v2x + v1y * v2y) / (m1 * m2);
         float rPartial = 1f - dot*dot;
         if(Math.abs(rPartial) < 1E-6f)
@@ -87,10 +86,10 @@ public class IterativeParticle extends Particle {
             dx = v1x/du;
             dy = v1y/du;
             update();
-            return "";
+            return;
         }
         float r = dot / (float) Math.sqrt(rPartial);
-        if(r == 0f) return "r";
+        if(r == 0f) return;
         float sign = Math.signum(v1x*v2y-v1y*v2x);
         float xRel = sign * r * v1y / m1;
         float yRel = -sign * r * v1x / m1;
@@ -98,24 +97,23 @@ public class IterativeParticle extends Particle {
         dx = r * (float) Math.cos(k) - xRel;
         dy = r * (float) Math.sin(k) - yRel;
         update();
-        return "";
     }
 
     public float getDx(float x, float y, float dt)
     {
-//        x -= 1f;
-//        float r = (float) Math.sqrt(x*x + y*y);
-//        if(r == 0f) return 0f;
-        return 1f * speed * dt;
-//        return y / r * speed * dt;
+        x -= 1f;
+        float r = (float) Math.sqrt(x*x + y*y);
+        if(r == 0f) return 0f;
+//        return 1f * speed * dt;
+        return y / r * speed * dt;
     }
 
     public float getDy(float x, float y, float dt)
     {
-//        x -= 1f;
-//        float r = (float) Math.sqrt(x*x + y*y);
-//        if(r == 0f) return 0f;
-        return (float) Math.sin(x) * speed * dt;
-//        return -x / r * speed * dt;
+        x -= 1f;
+        float r = (float) Math.sqrt(x*x + y*y);
+        if(r == 0f) return 0f;
+//        return (float) Math.sin(x) * speed * dt;
+        return -x / r * speed * dt;
     }
 }
