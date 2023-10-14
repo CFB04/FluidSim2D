@@ -9,16 +9,16 @@ import cfbastian.fluidsim2d.simulation.util.Bounds;
 import java.util.Random;
 
 public class IterativeSimulation extends Simulation {
-    Particle[] particles;
+    IterativeParticle[] particles;
 
     public IterativeSimulation(Bounds bounds, int numParticles) {
         super(bounds);
-        this.particles = new Particle[numParticles];
+        this.particles = new IterativeParticle[numParticles];
 
         Random r = new Random();
 
         for (int i = 0; i < particles.length; i++)
-            particles[i] = new Particle(r.nextFloat() * bounds.getWidth(), r.nextFloat() * bounds.getWidth() - (bounds.getWidth() - bounds.getHeight())/2f, 0f, 0f, 0xFF22FFFF);
+            particles[i] = new IterativeParticle((r.nextFloat() - 0.5f) * bounds.getHeight(), (r.nextFloat() - 0.5f) * bounds.getHeight(), 0f, 0f, 0xFF22FFFF);
     }
 
     @Override
@@ -30,8 +30,8 @@ public class IterativeSimulation extends Simulation {
 
         for (Particle p : particles)
         {
-            float x = p.getX() * Application.width / bounds.getWidth();
-            float y = ((bounds.getyMax() - bounds.getyMin()) - p.getY()) * Application.height / bounds.getHeight();
+            float x = (p.getX() + bounds.getWidth()/2f) * Application.width / bounds.getWidth();
+            float y = (bounds.getHeight()/2f - p.getY()) * Application.height / bounds.getHeight();
             float r = 0.05f * Application.width / bounds.getWidth();
             renderer.drawCircle((int) x, (int) y, (int) r, p.getColor());
         }
@@ -40,10 +40,7 @@ public class IterativeSimulation extends Simulation {
     @Override
     public void update(float dt)
     {
-        for (Particle p : particles) {
-            p.setDx((p.getY() - bounds.getCenterY())/50f);
-            p.setDy(-(p.getX() - bounds.getCenterX())/50f);
-            p.update();
-        }
+        for (IterativeParticle p : particles)
+            p.updateRK2(dt);
     }
 }
