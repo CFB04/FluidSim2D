@@ -4,7 +4,7 @@ import cfbastian.fluidsim2d.simulation.Particle;
 
 public class IterativeParticle extends Particle {
 
-    private float speed = 1f;
+    private float speed = 16f;
 
     public IterativeParticle(float x, float y, float dx, float dy, int color) {
         super(x, y, dx, dy, color);
@@ -71,15 +71,20 @@ public class IterativeParticle extends Particle {
 
     public void updateCircular(float dt, float du)
     {
-        float v1x = du * getDx(x, y, dt);
-        float v1y = du * getDy(x, y, dt);
+        float v1x = getDx(x, y, dt);
+        float v1y = getDy(x, y, dt);
         float m1 = (float) Math.sqrt(v1x*v1x + v1y*v1y);
         if(m1 == 0f) return;
-        float v2x = du * getDx(x + v1x / m1, y + v1y / m1, dt);
-        float v2y = du * getDy(x + v1x / m1, y + v1y / m1, dt);
+        v1x *= du/m1;
+        v1y *= du/m1;
+        float v2x = getDx(x + v1x, y + v1y, dt);
+        float v2y = getDy(x + v1x, y + v1y, dt);
         float m2 = (float) Math.sqrt(v2x*v2x + v2y*v2y);
         if(m2 == 0f) return;
-        float dot = (v1x * v2x + v1y * v2y) / (m1 * m2);
+        v2x *= du/m2;
+        v2y *= du/m2;
+        float dot = (v1x * v2x + v1y * v2y) / (du * du);
+
         float rPartial = 1f - dot*dot;
         if(Math.abs(rPartial) < 1E-6f)
         {
@@ -88,11 +93,11 @@ public class IterativeParticle extends Particle {
             update();
             return;
         }
-        float r = dot / (float) Math.sqrt(rPartial);
+        float r = du * dot / (float) Math.sqrt(rPartial);
         if(r == 0f) return;
         float sign = Math.signum(v1x*v2y-v1y*v2x);
-        float xRel = sign * r * v1y / m1;
-        float yRel = -sign * r * v1x / m1;
+        float xRel = sign * r * v1y / du;
+        float yRel = -sign * r * v1x / du;
         double k = (sign / r * speed * dt + Math.atan2(yRel, xRel));
         dx = r * (float) Math.cos(k) - xRel;
         dy = r * (float) Math.sin(k) - yRel;
@@ -101,19 +106,19 @@ public class IterativeParticle extends Particle {
 
     public float getDx(float x, float y, float dt)
     {
-        x -= 1f;
+//        x -= 1f;
         float r = (float) Math.sqrt(x*x + y*y);
         if(r == 0f) return 0f;
 //        return 1f * speed * dt;
-        return y / r * speed * dt;
+        return -y / r * speed * dt;
     }
 
     public float getDy(float x, float y, float dt)
     {
-        x -= 1f;
+//        x -= 1f;
         float r = (float) Math.sqrt(x*x + y*y);
         if(r == 0f) return 0f;
 //        return (float) Math.sin(x) * speed * dt;
-        return -x / r * speed * dt;
+        return 2f * x / r * speed * dt;
     }
 }
