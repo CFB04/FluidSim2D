@@ -42,9 +42,7 @@ public class IterativeSimulation extends Simulation {
     {
         for (IterativeParticle p : particles)
         {
-            System.out.print(" {" + p.getX() + ", " + p.getY() + "} ");
-            p.updateCircular(dt);
+            System.out.print(p.updateCircular(dt, 0.01f));
         }
-        System.out.println();
     }
 }
