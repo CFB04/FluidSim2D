@@ -55,9 +55,9 @@ public class SPHSimulation extends Simulation {
     public void render(Renderer renderer) {
         for (SPHParticle p : particles)
         {
-            float x = p.getX() * Application.width / (bounds.getxMax() - bounds.getxMin());
-            float y = ((bounds.getyMax() - bounds.getyMin()) - p.getY()) * Application.height / (bounds.getyMax() - bounds.getyMin());
-            float r = p.getR() * Application.width / (bounds.getxMax() - bounds.getxMin());
+            float x = p.getX() * Application.width / bounds.getWidth();
+            float y = (bounds.getHeight() - p.getY()) * Application.height / bounds.getHeight();
+            float r = p.getR() * Application.width / bounds.getWidth();
             renderer.drawCircle((int) x, (int) y, (int) r, p.getColor());
         }
     }

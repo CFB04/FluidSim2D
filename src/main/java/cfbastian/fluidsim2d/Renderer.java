@@ -42,4 +42,20 @@ public class Renderer {
             }
         }
     }
+
+    public void drawEmptyCircle(int x, int y, int r, int color)
+    {
+        int rSqrd = r*r;
+        for (int x1 = -r; x1 <= r; x1++) {
+            int y1 = (int) (Math.sqrt(rSqrd - x1 * x1) + 0.5);
+            setPixel(x + x1, y + y1, color);
+            setPixel(x + x1, y - y1, color);
+        }
+
+        for (int y1 = -r; y1 <= r; y1++) {
+            int x1 = (int) (Math.sqrt(rSqrd - y1 * y1) + 0.5);
+            setPixel(x + x1, y + y1, color);
+            setPixel(x - x1, y + y1, color);
+        }
+    }
 }
