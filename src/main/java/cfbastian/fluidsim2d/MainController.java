@@ -39,7 +39,7 @@ public class MainController {
         renderer = new Renderer();
         renderLoop = new RenderLoop();
 
-        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100);
+        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 200);
 //        simulation = new SPHSimulation(new Bounds(0f, 16f, 0f, 9f), 1);
 //        ((SPHSimulation) simulation).getParticles()[0] = new SPHParticle(16/2f, 9/2f, -4.532852f, 10f, 0xFF22FFFF, 0.5f);
 

@@ -18,7 +18,7 @@ public class IterativeSimulation extends Simulation {
         Random r = new Random();
 
         for (int i = 0; i < particles.length; i++)
-            particles[i] = new IterativeParticle((r.nextFloat() - 0.5f) * bounds.getHeight(), (r.nextFloat() - 0.5f) * bounds.getHeight(), 0f, 0f, 0xFF22FFFF);
+            particles[i] = new IterativeParticle((float) (Math.cos(r.nextDouble() * Math.PI * 2) * Math.pow(bounds.getHeight() / numParticles * i, 0.5)), (float) (Math.sin(r.nextDouble() * Math.PI * 2) * Math.pow(bounds.getHeight() / numParticles * i, 0.5)), 0f, 0f, 0xFF22FFFF);
     }
 
     @Override
@@ -41,6 +41,6 @@ public class IterativeSimulation extends Simulation {
     public void update(float dt)
     {
         for (IterativeParticle p : particles)
-            p.updateRK2(dt);
+            p.updateRK4(dt);
     }
 }
