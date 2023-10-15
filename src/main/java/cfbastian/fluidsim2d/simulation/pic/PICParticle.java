@@ -41,7 +41,7 @@ public class PICParticle extends Particle {
         update();
         x = Math.max(x, bounds.getxMin());
         x = Math.min(x, bounds.getxMax());
-        y = Math.max(y, bounds.getxMin());
-        y = Math.min(y, bounds.getxMax());
+        y = Math.max(y, bounds.getyMin());
+        y = Math.min(y, bounds.getyMax());
     }
 }
