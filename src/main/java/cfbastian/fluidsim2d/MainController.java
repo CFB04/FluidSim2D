@@ -23,7 +23,6 @@ public class MainController {
 
     @FXML
     Button playButton;
-
     boolean play = false;
 
     WritableImage image;
@@ -38,12 +37,6 @@ public class MainController {
     static int[] pixels = new int[Application.width * Application.height];
 
     long startTime;
-
-    @FXML
-    public void play()
-    {
-        play = !play;
-    }
 
     @FXML
     public void initialize() {
@@ -67,9 +60,11 @@ public class MainController {
         imageView.setFitWidth(Application.width);
         imageView.setFitHeight(Application.height);
         image = new WritableImage(Application.width, Application.height);
+
         pixelWriter = image.getPixelWriter();
         pixelFormat = WritablePixelFormat.getIntArgbInstance();
         pixelWriter.setPixels(0, 0, Application.width, Application.height, pixelFormat, pixels, 0, Application.width);
+
         imageView.setImage(image);
 
         renderer.init();
@@ -88,7 +83,9 @@ public class MainController {
         public void handle(long now) {
             double elapsedTime = (now - startTime)/1000000000D;
 
-            if(play) simulation.update((float) (elapsedTime - lastTime));
+            float dt = (float) (elapsedTime - lastTime);
+            if(play) simulation.update(dt);
+
             pixels = renderer.render(simulation);
 
             pixelWriter.setPixels(0, 0, Application.width, Application.height, pixelFormat, pixels, 0, Application.width);
@@ -105,5 +102,12 @@ public class MainController {
                 frames = 0;
             }
         }
+    }
+
+    @FXML
+    public void play()
+    {
+        play = !play;
+        playButton.setText(play? "❚❚" : "▶︎");
     }
 }

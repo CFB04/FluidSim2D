@@ -22,8 +22,6 @@ public class PICSimulation extends Simulation {
     private final PICGridpoint[] gridpoints;
     private final PICParticle[] particles;
 
-    private final float widthScalar, heightScalar;
-
     private final int rows, cols;
 
     private final float invGridStepWidth, invGridStepHeight;
@@ -40,9 +38,6 @@ public class PICSimulation extends Simulation {
         this.invGridStepHeight = (rows - 1f) / bounds.getHeight();
         this.gridpoints = new PICGridpoint[rows * cols];
         this.particles = new PICParticle[numParticles];
-
-        this.widthScalar = windowBounds.getWidth()/bounds.getWidth();
-        this.heightScalar = windowBounds.getHeight()/bounds.getHeight();
 
         for (int i = 0; i < gridpoints.length; i++) {
             int x = i % cols, y = i / cols;
@@ -212,7 +207,7 @@ public class PICSimulation extends Simulation {
     public void renderGridpoints(Renderer renderer)
     {
         for (int i = 0; i < gridpoints.length; i++) {
-            renderer.drawEmptyCircle((int) (gridpoints[i].getX() * widthScalar + windowBounds.getxMin()), (int) (windowBounds.getHeight() - (gridpoints[i].getY() * heightScalar) + windowBounds.getyMin()), 2, gridpoints[i].getColor());
+            renderer.drawEmptyCircle((int) (gridpoints[i].getX() * windowBounds.getWidth()/bounds.getWidth() + windowBounds.getxMin()), (int) (windowBounds.getHeight() - (gridpoints[i].getY() * windowBounds.getHeight()/bounds.getHeight()) + windowBounds.getyMin()), 2, gridpoints[i].getColor());
         }
     }
 
