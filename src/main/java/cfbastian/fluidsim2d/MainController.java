@@ -8,6 +8,7 @@ import cfbastian.fluidsim2d.simulation.sph.SPHSimulation;
 import cfbastian.fluidsim2d.simulation.util.Bounds;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
@@ -19,6 +20,11 @@ import java.util.Arrays;
 public class MainController {
     @FXML
     ImageView imageView;
+
+    @FXML
+    Button playButton;
+
+    boolean play = false;
 
     WritableImage image;
     PixelWriter pixelWriter;
@@ -32,6 +38,12 @@ public class MainController {
     static int[] pixels = new int[Application.width * Application.height];
 
     long startTime;
+
+    @FXML
+    public void play()
+    {
+        play = !play;
+    }
 
     @FXML
     public void initialize() {
@@ -76,7 +88,7 @@ public class MainController {
         public void handle(long now) {
             double elapsedTime = (now - startTime)/1000000000D;
 
-            simulation.update((float) (elapsedTime - lastTime));
+            if(play) simulation.update((float) (elapsedTime - lastTime));
             pixels = renderer.render(simulation);
 
             pixelWriter.setPixels(0, 0, Application.width, Application.height, pixelFormat, pixels, 0, Application.width);

@@ -13,7 +13,7 @@ public class Application extends javafx.application.Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), width, height);
+        Scene scene = new Scene(fxmlLoader.load());
 
         scene.setFill(new Color(0.1, 0.1, 0.1, 1));
         scene.getRoot().requestFocus();
