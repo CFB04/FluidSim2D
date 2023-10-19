@@ -40,6 +40,18 @@ public class Renderer {
         if(x >= 0 && x < Application.width && y >= 0 && y < Application.height) pixels[x + Application.width * y] = color;
     }
 
+    public void drawRectangle(int x, int y, int w, int h, int color)
+    {
+        for (int i = x; i < x + w; i++) {
+            setPixel(i, y, color);
+            setPixel(i, y + h, color);
+        }
+        for (int i = y; i < y + h; i++) {
+            setPixel(x, i, color);
+            setPixel(x + w, i, color);
+        }
+    }
+
     public void drawCircle(int x, int y, int r, int color)
     {
         int rSqrd = r*r;

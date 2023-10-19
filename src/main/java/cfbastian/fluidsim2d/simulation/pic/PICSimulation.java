@@ -17,8 +17,11 @@ public class PICSimulation extends Simulation {
 
     private final float gridStepWidth, gridStepHeight;
 
-    public PICSimulation(Bounds bounds, Bounds particleBounds, int numParticles, int particlesPerRow, int rows, int cols) {
+    private final Bounds windowBounds;
+
+    public PICSimulation(Bounds bounds, Bounds windowBounds, Bounds particleBounds, int numParticles, int particlesPerRow, int rows, int cols) {
         super(bounds);
+        this.windowBounds = windowBounds;
         this.rows = rows;
         this.cols = cols;
         this.gridStepWidth = (bounds.getWidth()) / (float) (cols - 1);
@@ -26,8 +29,8 @@ public class PICSimulation extends Simulation {
         this.gridpoints = new PICGridpoint[rows * cols];
         this.particles = new PICParticle[numParticles];
 
-        widthScalar = Application.width/bounds.getWidth();
-        heightScalar = Application.height/bounds.getHeight();
+        widthScalar = windowBounds.getWidth()/bounds.getWidth();
+        heightScalar = windowBounds.getHeight()/bounds.getHeight();
 
         for (int i = 0; i < gridpoints.length; i++) {
             int x = i % (cols), y = i / (cols);
@@ -46,70 +49,93 @@ public class PICSimulation extends Simulation {
                     0f, 0f, 0xFF22FFFF, 0.05f, 1f);
     }
 
+    public void init()
+    {
+        for (int i = 0; i < gridpoints.length; i++) {
+            gridpoints[i].setVX(0f);
+            gridpoints[i].setVY(1f);
+//            gridpoints[i].setVX(-(gridpoints[i].getY() - bounds.getCenterY()));
+//            gridpoints[i].setVY((gridpoints[i].getX() - bounds.getCenterX()));
+//            gridpoints[i].setVX(gridpoints[i].getX() - bounds.getCenterX());
+//            gridpoints[i].setVY(gridpoints[i].getY() - bounds.getCenterY());
+//            System.out.println(gridpoints[i].getY() - bounds.getCenterY());
+        }
+    }
+
     private synchronized void lagrangeStep(int particleIndex, float dt)
     {
-        PICParticle p = particles[particleIndex];
-        float x = p.getX(), y = p.getY(), dx = p.getDx(), dy = p.getDy(), m = p.getM();
-        int[] g = new int[4];
-        g[0] = selectGridpoint(p);
-        g[1] = g[0] + cols;
-        g[2] = g[0] + 1;
-        g[3] = g[0] + cols + 1;
+        for (int i = 0; i < particles.length; i++) {
+            PICParticle p = particles[i];
+            float x = p.getX(), y = p.getY(), dx = p.getDx(), dy = p.getDy(), m = p.getM();
+            int[] g = new int[4];
+            g[0] = selectGridpoint(p);
+            g[1] = g[0] + cols;
+            g[2] = g[0] + 1;
+            g[3] = g[0] + cols + 1;
 
-        //Receive velocities
-        float x1 = x - gridpoints[g[0]].getX();
-        float y1 = y - gridpoints[g[0]].getY();
-        float x2 = x1 / gridStepWidth, y2 = y1 / gridStepHeight;
+            //Receive velocities
+            float x1 = x - gridpoints[g[0]].getX();
+            float y1 = y - gridpoints[g[0]].getY();
+            float x2 = x1 / gridStepWidth, y2 = y1 / gridStepHeight;
 
-        float rhoX = SimMath.lerp(
-                SimMath.lerp(gridpoints[g[0]].getdRhoX(), gridpoints[g[2]].getdRhoX(), x2),
-                SimMath.lerp(gridpoints[g[1]].getdRhoX(), gridpoints[g[3]].getdRhoX(), x2),
-                y2);
-        float rhoY = SimMath.lerp(
-                SimMath.lerp(gridpoints[g[0]].getdRhoY(), gridpoints[g[2]].getdRhoY(), x2),
-                SimMath.lerp(gridpoints[g[1]].getdRhoY(), gridpoints[g[3]].getdRhoY(), x2),
-                y2);
-        float invM = 1f / m;
-        particles[particleIndex].setDx(rhoX * invM);
-        particles[particleIndex].setDy(rhoY * invM);
+            float vX = SimMath.lerp(
+                    SimMath.lerp(gridpoints[g[0]].getVX(), gridpoints[g[2]].getVX(), x2),
+                    SimMath.lerp(gridpoints[g[1]].getVX(), gridpoints[g[3]].getVX(), x2),
+                    y2);
+            float vY = SimMath.lerp(
+                    SimMath.lerp(gridpoints[g[0]].getVY(), gridpoints[g[2]].getVY(), x2),
+                    SimMath.lerp(gridpoints[g[1]].getVY(), gridpoints[g[3]].getVY(), x2),
+                    y2);
+            particles[i].setDx(vX);
+            particles[i].setDy(vY);
 
-        //Kinematics
-        particles[particleIndex].update(bounds);
+            //Kinematics
+            particles[i].update(bounds, dt);
+        }
+    }
 
-        //Impart mass and momentum
-        float w[] = new float[4];
-//        w[0] = (float) Math.sqrt(x1*x1 + y1*y1);
-//        x1 = x - gridpoints[g[1]].getX(); y1 = y - gridpoints[g[1]].getY();
-//        w[1] = (float) Math.sqrt(x1*x1 + y1*y1);
-//        x1 = x - gridpoints[g[2]].getX(); y1 = y - gridpoints[g[2]].getY();
-//        w[2] = (float) Math.sqrt(x1*x1 + y1*y1);
-//        x1 = x - gridpoints[g[3]].getX(); y1 = y - gridpoints[g[3]].getY();
-//        w[3] = (float) Math.sqrt(x1*x1 + y1*y1);
+    public void transferLagrangian()
+    {
+        for (int i = 0; i < gridpoints.length; i++) gridpoints[i].reset();
 
-//        w[0] = 1f - w[0];
-//        w[1] = 1f - w[1];
-//        w[2] = 1f - w[2];
-//        w[3] = 1f - w[3];
-//        w[0] = Math.max(w[0], 0f);
-//        w[1] = Math.max(w[1], 0f);
-//        w[2] = Math.max(w[2], 0f);
-//        w[3] = Math.max(w[3], 0f);
+        for (int i = 0; i < particles.length; i++) {
+            PICParticle p = particles[i];
+            float x = p.getX(), y = p.getY(), dx = p.getDx(), dy = p.getDy(), m = p.getM();
 
-        w[0] = (1f - x2) + (1f - y2);
-        w[1] = (1f - x2) + y2;
-        w[2] = (x2) + (1f - y2);
-        w[3] = (x2) + y2;
+            int[] g = new int[4];
+            g[0] = selectGridpoint(p);
+            g[1] = g[0] + cols;
+            g[2] = g[0] + 1;
+            g[3] = g[0] + cols + 1;
 
-        float sum = w[0] + w[1] + w[2] + w[3];
-        w[0] /= sum;
-        w[1] /= sum;
-        w[2] /= sum;
-        w[3] /= sum;
+            //Impart mass and momentum
+            float w[] = new float[4];
+            float x1 = x - gridpoints[g[0]].getX();
+            float y1 = y - gridpoints[g[0]].getY();
+            float x2 = x1 / gridStepWidth, y2 = y1 / gridStepHeight;
 
-        for (int i = 0; i < 4; i++) {
-            gridpoints[g[i]].setM(m * w[i]);// TODO FIX
-            gridpoints[g[i]].setdRhoX(m * dx * w[i]);
-            gridpoints[g[i]].setdRhoY(m * dy * w[i]);
+            w[0] = (1f - x2) * (1f - y2);
+            w[1] = (1f - x2) * y2;
+            w[2] = x2 * (1f - y2);
+            w[3] = x2 * y2;
+
+            float sum = w[0] + w[1] + w[2] + w[3];
+            w[0] /= sum;
+            w[1] /= sum;
+            w[2] /= sum;
+            w[3] /= sum;
+
+            for (int j = 0; j < 4; j++) {
+                gridpoints[g[j]].incM(m * w[j]);// TODO FIX
+                gridpoints[g[j]].incVX(dx * w[j]);
+                gridpoints[g[j]].incVY(dy * w[j]);
+            }
+        }
+
+        for (int i = 0; i < gridpoints.length; i++) {
+            float m = gridpoints[i].getM();
+            gridpoints[i].setVX(gridpoints[i].getVX() / m);
+            gridpoints[i].setVY(gridpoints[i].getVY() / m);
         }
     }
 
@@ -128,30 +154,30 @@ public class PICSimulation extends Simulation {
     }
 
     @Override
-    public void render(Renderer renderer) {
+    public void update(float dt) {
+        lagrangeStep(0, dt);
+        transferLagrangian();
         for (int i = 0; i < gridpoints.length; i++) {
-            renderer.drawEmptyCircle((int) (gridpoints[i].getX() * widthScalar), Application.height - (int) (gridpoints[i].getY() * heightScalar), 2, gridpoints[i].getColor());
-        }
-
-        for (int i = 0; i < particles.length; i++) {
-            float x = particles[i].getX() * Application.width / bounds.getWidth();
-            float y = (bounds.getHeight() - particles[i].getY()) * Application.height / bounds.getHeight();
-            float r = particles[i].getR() * Application.width / bounds.getWidth();
-            renderer.drawCircle((int) x, (int) y, (int) r, particles[i].getColor());
+            //Dynamics TODO ADD FLUID DYNAMICS
+            gridpoints[i].incVY(-1f * dt);
+//            gridpoints[i].setVX(-(gridpoints[i].getY() - bounds.getCenterY()) * 1f * dt);
+//            gridpoints[i].setVY((gridpoints[i].getX() - bounds.getCenterX()) * 1f * dt);
         }
     }
 
     @Override
-    public void update(float dt) {
-        for (int i = 0; i < particles.length; i++) {
-            lagrangeStep(i, dt);
-        }
+    public void render(Renderer renderer) {
+        renderer.drawRectangle((int) windowBounds.getxMin() - 1, (int) windowBounds.getyMin() - 1, (int) windowBounds.getWidth() + 1, (int) windowBounds.getHeight() + 1, 0xFFFFFFFF);
+
         for (int i = 0; i < gridpoints.length; i++) {
-//            //Dynamics TODO ADD FLUID DYNAMICS
-//            gridpoints[i].setdRhoX(-(gridpoints[i].getY() - bounds.getCenterY()) * 1f * dt);
-//            gridpoints[i].setdRhoY((gridpoints[i].getX() - bounds.getCenterX()) * 1f * dt);
-            gridpoints[i].setdRhoX(0f);
-            gridpoints[i].setdRhoY(-1f * dt);
+            renderer.drawEmptyCircle((int) (gridpoints[i].getX() * widthScalar + windowBounds.getxMin()), (int) (windowBounds.getHeight() - (gridpoints[i].getY() * heightScalar) + windowBounds.getyMin()), 2, gridpoints[i].getColor());
+        }
+
+        for (int i = 0; i < particles.length; i++) {
+            float x = windowBounds.getxMin() + particles[i].getX() * windowBounds.getWidth() / bounds.getWidth();
+            float y = windowBounds.getyMin() + (bounds.getHeight() - particles[i].getY()) * windowBounds.getHeight() / bounds.getHeight();
+            float r = particles[i].getR() * Application.width / bounds.getWidth();
+            renderer.drawCircle((int) x, (int) y, (int) r, particles[i].getColor());
         }
     }
 }

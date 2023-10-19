@@ -36,9 +36,11 @@ public class PICParticle extends Particle {
         dy += v;
     }
 
-    public void update(Bounds bounds)
+    public void update(Bounds bounds, float dt)
     {
-        update();
+        x += dx * dt;
+        y += dy * dt;
+//        update();
         x = Math.max(x, bounds.getxMin());
         x = Math.min(x, bounds.getxMax());
         y = Math.max(y, bounds.getyMin());
