@@ -20,22 +20,17 @@ public class PICGridpoint extends Gridpoint {
         this.vX = vX;
     }
 
+    public void incVX(float dVX)
+    {
+        vX += dVX;
+    }
+
     public float getVY() {
         return vY;
     }
 
     public void setVY(float vY) {
         this.vY = vY;
-    }
-
-    public void incM(float dm)
-    {
-        m += dm;
-    }
-
-    public void incVX(float dVX)
-    {
-        vX += dVX;
     }
 
     public void incVY(float dVY)
@@ -49,6 +44,11 @@ public class PICGridpoint extends Gridpoint {
 
     public void setM(float m) {
         this.m = m;
+    }
+
+    public void incM(float dm)
+    {
+        m += dm;
     }
 
     public void reset()

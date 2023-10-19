@@ -59,10 +59,10 @@ public class MainController {
         int gridRes = 2, pRes = 2;
         simulation = new PICSimulation(
                 new Bounds(0f, 16f, 0f, 9f),
-                new Bounds(32, 32 + 1216, 18, 18 + 684),
-                new Bounds(4f, 12f, 3f, 7.5f),
+                new Bounds(128, 128 + 1024, 72, 72 + 576),
+                new Bounds(4f, 12f, 2.25f, 6.75f),
                 16*9*pRes*pRes, 16*pRes, 9*gridRes + 1,16*gridRes + 1);
-        ((PICSimulation) simulation).init();
+        simulation.init();
 
         imageView.setFitWidth(Application.width);
         imageView.setFitHeight(Application.height);
