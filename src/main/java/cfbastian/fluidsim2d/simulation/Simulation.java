@@ -8,4 +8,6 @@ public abstract class Simulation implements Updateable, Renderable{
     public Simulation(Bounds bounds) {
         this.bounds = bounds;
     }
+
+    public void init(){}
 }

@@ -49,20 +49,21 @@ public class PICSimulation extends Simulation {
                     0f, 0f, 0xFF22FFFF, 0.05f, 1f);
     }
 
+    @Override
     public void init()
     {
         for (int i = 0; i < gridpoints.length; i++) {
-            gridpoints[i].setVX(0f);
-            gridpoints[i].setVY(1f);
+//            gridpoints[i].setVX(0f);
+//            gridpoints[i].setVY(1f);
 //            gridpoints[i].setVX(-(gridpoints[i].getY() - bounds.getCenterY()));
 //            gridpoints[i].setVY((gridpoints[i].getX() - bounds.getCenterX()));
-//            gridpoints[i].setVX(gridpoints[i].getX() - bounds.getCenterX());
-//            gridpoints[i].setVY(gridpoints[i].getY() - bounds.getCenterY());
-//            System.out.println(gridpoints[i].getY() - bounds.getCenterY());
+            gridpoints[i].setVX(gridpoints[i].getX() - bounds.getCenterX());
+            gridpoints[i].setVY(gridpoints[i].getY() - bounds.getCenterY());
+            System.out.println(gridpoints[i].getY() - bounds.getCenterY());
         }
     }
 
-    private synchronized void lagrangeStep(int particleIndex, float dt)
+    private synchronized void lagrangeStep(float dt)
     {
         for (int i = 0; i < particles.length; i++) {
             PICParticle p = particles[i];
@@ -120,6 +121,7 @@ public class PICSimulation extends Simulation {
             w[3] = x2 * y2;
 
             float sum = w[0] + w[1] + w[2] + w[3];
+            sum = sum == 0f? 1f : sum;
             w[0] /= sum;
             w[1] /= sum;
             w[2] /= sum;
@@ -134,15 +136,17 @@ public class PICSimulation extends Simulation {
 
         for (int i = 0; i < gridpoints.length; i++) {
             float m = gridpoints[i].getM();
-            gridpoints[i].setVX(gridpoints[i].getVX() / m);
-            gridpoints[i].setVY(gridpoints[i].getVY() / m);
+            if(m != 0) {
+                gridpoints[i].setVX(gridpoints[i].getVX() / m);
+                gridpoints[i].setVY(gridpoints[i].getVY() / m);
+            }
         }
     }
 
     public int selectGridpoint(float x, float y)
     {
-        int xi = (int) ((x - bounds.getxMin()) * (float) (cols - 1) / bounds.getWidth());
-        int yi = (int) ((y - bounds.getyMin()) * (float) (rows - 1) / bounds.getHeight());
+        int xi = (int) ((x - bounds.getxMin()) / gridStepWidth);
+        int yi = (int) ((y - bounds.getyMin()) / gridStepHeight);
         xi -= x >= bounds.getxMax()? 1 : 0;
         yi -= y >= bounds.getyMax()? 1 : 0;
         return xi + yi * cols;
@@ -150,16 +154,17 @@ public class PICSimulation extends Simulation {
 
     public int selectGridpoint(PICParticle p)
     {
-        return selectGridpoint(p.getX(), p.getY());
+        int ret = selectGridpoint(p.getX(), p.getY());
+        return ret;
     }
 
     @Override
     public void update(float dt) {
-        lagrangeStep(0, dt);
+        lagrangeStep(dt);
         transferLagrangian();
         for (int i = 0; i < gridpoints.length; i++) {
             //Dynamics TODO ADD FLUID DYNAMICS
-            gridpoints[i].incVY(-1f * dt);
+//            gridpoints[i].incVY(-1f * dt);
 //            gridpoints[i].setVX(-(gridpoints[i].getY() - bounds.getCenterY()) * 1f * dt);
 //            gridpoints[i].setVY((gridpoints[i].getX() - bounds.getCenterX()) * 1f * dt);
         }
