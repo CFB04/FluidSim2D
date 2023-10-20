@@ -8,16 +8,17 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class Application extends javafx.application.Application {
-    public static int width = 1280, height = 720;
+    public static int width = 2560, height = 1440;
 
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), width, height);
+        Scene scene = new Scene(fxmlLoader.load());
 
         scene.setFill(new Color(0.1, 0.1, 0.1, 1));
         scene.getRoot().requestFocus();
 
+//        stage.setFullScreen(true);
         stage.setTitle("Fluid Sim 2D");
         stage.setScene(scene);
         stage.setResizable(false);

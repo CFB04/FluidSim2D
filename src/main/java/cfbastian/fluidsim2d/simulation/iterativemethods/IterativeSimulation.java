@@ -15,10 +15,12 @@ public class IterativeSimulation extends Simulation {
         super(bounds);
         this.particles = new IterativeParticle[numParticles];
 
-        Random r = new Random();
+        Random random = new Random();
+
+        float r = bounds.getWidth()*bounds.getWidth() + bounds.getHeight()*bounds.getHeight();
 
         for (int i = 0; i < particles.length; i++)
-            particles[i] = new IterativeParticle((float) (Math.cos(r.nextDouble() * Math.PI * 2) * Math.pow(bounds.getHeight() / numParticles * i, 0.5)), (float) (Math.sin(r.nextDouble() * Math.PI * 2) * Math.pow(bounds.getHeight() / numParticles * i, 0.5)), 0f, 0f, 0xFF22FFFF);
+            particles[i] = new IterativeParticle((float) (Math.cos(random.nextDouble() * Math.PI * 2) * Math.pow(r / numParticles * i, 0.5)), (float) (Math.sin(random.nextDouble() * Math.PI * 2) * Math.pow(r / numParticles * i, 0.5)), 0f, 0f, 0xFF22FFFF);
     }
 
     @Override
@@ -32,7 +34,7 @@ public class IterativeSimulation extends Simulation {
         {
             float x = (p.getX() + bounds.getWidth()/2f) * Application.width / bounds.getWidth();
             float y = (bounds.getHeight()/2f - p.getY()) * Application.height / bounds.getHeight();
-            float r = 0.05f * Application.width / bounds.getWidth();
+            float r = 0.01f * Application.width / bounds.getWidth();
             renderer.drawCircle((int) x, (int) y, (int) r, p.getColor());
         }
     }
@@ -41,6 +43,9 @@ public class IterativeSimulation extends Simulation {
     public void update(float dt)
     {
         for (IterativeParticle p : particles)
-            p.updateRK4(dt);
+        {
+//            p.updateRK4(dt);
+            p.updateCircular(dt, 0.5f);
+        }
     }
 }

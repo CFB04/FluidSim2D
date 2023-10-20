@@ -5,13 +5,25 @@ import cfbastian.fluidsim2d.Renderer;
 import cfbastian.fluidsim2d.simulation.Simulation;
 import cfbastian.fluidsim2d.simulation.util.Bounds;
 
+import java.util.Random;
+
 public class SPHSimulation extends Simulation {
     SPHParticle[] particles;
     float decay = 0.7f;
 
-    public SPHSimulation(Bounds bounds, int numParticles) {
+    public SPHSimulation(Bounds bounds, int numParticles, Bounds particleBounds, int particlesPerRow) {
         super(bounds);
         this.particles = new SPHParticle[numParticles];
+
+        int particlesPerCol = numParticles/particlesPerRow;
+
+        Random r = new Random();
+
+        for (int i = 0; i < numParticles; i++)
+            this.particles[i] = new SPHParticle(
+                    particleBounds.getxMin() + particleBounds.getWidth()/particlesPerRow * (i % particlesPerRow),
+                    particleBounds.getyMin() + particleBounds.getHeight()/particlesPerCol * (i / particlesPerRow),
+                    (float) r.nextGaussian() * 5f, (float) r.nextGaussian()*2.5f, 0xFF22FFFF, 0.01f);
     }
 
     @Override

@@ -10,6 +10,12 @@ public class SPHParticle extends Particle {
         this.r = r;
     }
 
+    public float getInfluence(float d)
+    {
+        float d1 = Math.max(r - Math.abs(d), 0f)/r;
+        return d1*d1*d1;
+    }
+
     public float getR() {
         return r;
     }
