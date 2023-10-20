@@ -52,6 +52,18 @@ public class Renderer {
         }
     }
 
+    public void drawDottedRectangle(int x, int y, int w, int h, int color)
+    {
+        for (int i = x; i < x + w; i+=2) {
+            setPixel(i, y, color);
+            setPixel(i, y + h, color);
+        }
+        for (int i = y; i < y + h; i+=2) {
+            setPixel(x, i, color);
+            setPixel(x + w, i, color);
+        }
+    }
+
     public void drawCircle(int x, int y, int r, int color)
     {
         int rSqrd = r*r;
