@@ -34,7 +34,7 @@ public class IterativeSimulation extends Simulation {
         {
             float x = (p.getX() + bounds.getWidth()/2f) * Application.width / bounds.getWidth();
             float y = (bounds.getHeight()/2f - p.getY()) * Application.height / bounds.getHeight();
-            float r = 0.02f * Application.width / bounds.getWidth();
+            float r = 0.01f * Application.width / bounds.getWidth();
             renderer.drawCircle((int) x, (int) y, (int) r, p.getColor());
         }
     }

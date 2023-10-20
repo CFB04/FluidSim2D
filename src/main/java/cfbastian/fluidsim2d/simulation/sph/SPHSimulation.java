@@ -23,7 +23,7 @@ public class SPHSimulation extends Simulation {
             this.particles[i] = new SPHParticle(
                     particleBounds.getxMin() + particleBounds.getWidth()/particlesPerRow * (i % particlesPerRow),
                     particleBounds.getyMin() + particleBounds.getHeight()/particlesPerCol * (i / particlesPerRow),
-                    (float) r.nextGaussian() * 5f, (float) r.nextGaussian()*2.5f, 0xFF22FFFF, 0.02f);
+                    (float) r.nextGaussian() * 5f, (float) r.nextGaussian()*2.5f, 0xFF22FFFF, 0.01f);
     }
 
     @Override

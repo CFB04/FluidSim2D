@@ -12,7 +12,7 @@ public class Renderer {
     SPHParticle p = new SPHParticle(Application.width/2, Application.height/2, 0f, 0f, 0x0022FFFF, Application.height/3f);
     
     public int[] render(Renderable simulation) {
-        Arrays.fill(pixels, 0xFF101010);
+        Arrays.fill(pixels, 0xFF000000);
 
 //        for (int i = 0; i < pixels.length; i++) {
 //            int x = i % Application.width, y = i/Application.width;
@@ -40,7 +40,7 @@ public class Renderer {
         if(x >= 0 && x < Application.width && y >= 0 && y < Application.height) pixels[x + Application.width * y] = color;
     }
 
-    public void drawRectangle(int x, int y, int w, int h, int color)
+    public void drawEmptyRectangle(int x, int y, int w, int h, int color)
     {
         for (int i = x; i < x + w; i++) {
             setPixel(i, y, color);
@@ -49,6 +49,15 @@ public class Renderer {
         for (int i = y; i < y + h; i++) {
             setPixel(x, i, color);
             setPixel(x + w, i, color);
+        }
+    }
+
+    public void drawRectangle(int x, int y, int w, int h, int color)
+    {
+        for (int x1 = x; x1 < x + w; x1++) {
+            for (int y1 = y; y1 < y + h; y1++) {
+                setPixel(x1, y1, color);
+            }
         }
     }
 

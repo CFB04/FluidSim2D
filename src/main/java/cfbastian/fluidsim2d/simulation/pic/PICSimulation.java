@@ -1,6 +1,5 @@
 package cfbastian.fluidsim2d.simulation.pic;
 
-import cfbastian.fluidsim2d.Application;
 import cfbastian.fluidsim2d.Renderer;
 import cfbastian.fluidsim2d.simulation.Simulation;
 import cfbastian.fluidsim2d.simulation.util.Bounds;
@@ -45,6 +44,7 @@ public class PICSimulation extends Simulation {
     public void init()
     {
         grid.init();
+        for (int i = 0; i < particles.length; i++) grid.cellTypes[grid.selectCell(particles[i])] = PICGrid.CellType.WATER;
     }
 
     /**
@@ -85,6 +85,12 @@ public class PICSimulation extends Simulation {
     public void transferLagrangian1()
     {
         grid.reset();
+        for (int x = 1; x < grid.getCols() - 1; x++) {
+            for (int y = 1; y < grid.getRows() - 1; y++) {
+                grid.cellTypes[x + y * grid.getCols()] = PICGrid.CellType.AIR;
+            }
+        }
+
         for (int i = 0; i < particles.length; i++) {
             int[] gM = grid.selectGridpoints(grid.selectMGridpoint(particles[i]));
             int[] gU = grid.selectGridpoints(grid.selectUGridpoint(particles[i]));
@@ -142,6 +148,8 @@ public class PICSimulation extends Simulation {
                 grid.vGridpoints[gV[j]].incV(particles[i].getDy() * w[j]);
                 grid.vGridpoints[gV[j]].incW(w[j]);
             }
+
+            grid.cellTypes[grid.selectCell(particles[i])] = PICGrid.CellType.WATER;
         }
 
         for (int i = 0; i < grid.mGridpoints.length; i++) {
@@ -161,31 +169,42 @@ public class PICSimulation extends Simulation {
     public void eulerianStep(float dt)
     {
         //Dynamics
-        int steps = 1;
-        float divergence = Float.MAX_VALUE;
+        int maxSteps = 20;
+        float divTolerance = 0.001f;
+        float divergence = Float.MAX_VALUE, s;
         float oRFactor = 1.25f; // Over-relaxation factor
-        for (int i = 0; i < steps; i++) {
+        for (int i = 0; i < maxSteps; i++) {
             for (int x = 1; x < grid.getCols() - 1; x++) {
                 for (int y = 1; y < grid.getRows() - 1; y++) {
                     int j = x + y * grid.getCols();
 
                     int[] g = grid.getCellVelocities(j);
+                    int[] c = grid.selectCells(j);
 
                     float u1 = grid.uGridpoints[g[0]].getV();
                     float v1 = grid.vGridpoints[g[1]].getV();
                     float u2 = grid.uGridpoints[g[2]].getV();
                     float v2 = grid.vGridpoints[g[3]].getV();
 
+                    float s0 = grid.cellTypes[c[0]].s;
+                    float s1 = grid.cellTypes[c[1]].s;
+                    float s2 = grid.cellTypes[c[2]].s;
+                    float s3 = grid.cellTypes[c[3]].s;
+
                     divergence = u1 + v1 - u2 - v2;
 
-                    grid.uGridpoints[g[0]].setV(u1 - divergence * 0.25f * oRFactor);
-                    grid.vGridpoints[g[1]].setV(v1 - divergence * 0.25f * oRFactor);
-                    grid.uGridpoints[g[2]].setV(u2 + divergence * 0.25f * oRFactor);
-                    grid.vGridpoints[g[3]].setV(v2 + divergence * 0.25f * oRFactor);
+                    s = s0 + s1 + s2 + s3;
+                    s = 1f / s;
+
+                    grid.uGridpoints[g[0]].setV(u1 - divergence * s0 * s * oRFactor);
+                    grid.vGridpoints[g[1]].setV(v1 - divergence * s1 * s * oRFactor);
+                    grid.uGridpoints[g[2]].setV(u2 + divergence * s2 * s * oRFactor);
+                    grid.vGridpoints[g[3]].setV(v2 + divergence * s3 * s * oRFactor);
                 }
             }
+
+            if (Math.abs(divergence) < divTolerance) break;
         }
-        if(divergence > 0.001) System.out.println(divergence);
 
         for (int i = 0; i < grid.mGridpoints.length; i++) grid.vGridpoints[i].incV(-9.81f * dt);
     }
@@ -201,14 +220,14 @@ public class PICSimulation extends Simulation {
     @Override
     public void render(Renderer renderer)
     {
-//        grid.render(renderer);
+        grid.render(renderer);
         renderBox(renderer);
         renderParticles(renderer);
     }
 
     public void renderBox(Renderer renderer)
     {
-        renderer.drawRectangle((int) windowBounds.getxMin() - 1, (int) windowBounds.getyMin() - 1, (int) windowBounds.getWidth() + 1, (int) windowBounds.getHeight() + 1, 0xFFFFFFFF);
+        renderer.drawEmptyRectangle((int) windowBounds.getxMin() - 1, (int) windowBounds.getyMin() - 1, (int) windowBounds.getWidth() + 1, (int) windowBounds.getHeight() + 1, 0xFFFFFFFF);
     }
 
     public void renderParticles(Renderer renderer)
@@ -216,8 +235,7 @@ public class PICSimulation extends Simulation {
         for (int i = 0; i < particles.length; i++) {
             float x = windowBounds.getxMin() + particles[i].getX() * windowBounds.getWidth() / bounds.getWidth();
             float y = windowBounds.getyMin() + (bounds.getHeight() - particles[i].getY()) * windowBounds.getHeight() / bounds.getHeight();
-            float r = particles[i].getR() * Application.width / bounds.getWidth();
-            renderer.drawCircle((int) x, (int) y, 2, particles[i].getColor());
+            renderer.setPixel((int) x, (int) y, particles[i].getColor());
         }
     }
 }
