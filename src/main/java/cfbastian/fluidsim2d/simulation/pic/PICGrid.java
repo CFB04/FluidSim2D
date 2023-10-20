@@ -65,10 +65,10 @@ public class PICGrid implements Renderable {
             uGridpoints[i].reset();
             vGridpoints[i].reset();
 //            gridpoints[i].setVY(1f);
-            uGridpoints[i].setV(-2f * (mGridpoints[i].getY() - bounds.getCenterY()));
-            vGridpoints[i].setV(2f * (mGridpoints[i].getX() - bounds.getCenterX()));
+//            uGridpoints[i].setV(-2f * (mGridpoints[i].getY() - bounds.getCenterY()));
+//            vGridpoints[i].setV(2f * (mGridpoints[i].getX() - bounds.getCenterX()));
 //            uGridpoints[i].setV(0f);
-//            vGridpoints[i].setV(10f);
+            vGridpoints[i].setV(1f);
 //            mGridpoints[i].setVY(0.2f);
 //            float x = gridpoints[i].getX() - bounds.getCenterX(), y = gridpoints[i].getY() - bounds.getCenterY();
 //            float mag = (float) Math.sqrt(x*x + y*y);
@@ -121,12 +121,30 @@ public class PICGrid implements Renderable {
         return g;
     }
 
+    public int[] getCellVelocities(int cell)
+    {
+        int[] g = new int[4];
+        g[0] = cell; // u
+        g[1] = cell; // v
+        g[2] = cell - 1; // u
+        g[3] = cell - cols; // v
+        return g;
+    }
+
     public float getInvGridCellWidth() {
         return invGridCellWidth;
     }
 
     public float getInvGridCellHeight() {
         return invGridCellHeight;
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public int getCols() {
+        return cols;
     }
 
     @Override
@@ -136,9 +154,14 @@ public class PICGrid implements Renderable {
             float hScale = windowBounds.getHeight()/bounds.getHeight();
 
             renderer.drawDottedRectangle((int) ((mGridpoints[i].getX() - 0.5f / invGridCellWidth) * wScale + windowBounds.getxMin()), (int) (windowBounds.getHeight() - (mGridpoints[i].getY() + 0.5f / invGridCellHeight) * hScale + windowBounds.getyMin()), (int) (wScale/ invGridCellWidth), (int) (hScale/ invGridCellHeight), 0xFF888888);
-            renderer.drawEmptyCircle((int) (mGridpoints[i].getX() * wScale + windowBounds.getxMin()), (int) (windowBounds.getHeight() - mGridpoints[i].getY() * hScale + windowBounds.getyMin()), 2, mGridpoints[i].getColor());
-            renderer.drawEmptyCircle((int) (uGridpoints[i].getX() * wScale + windowBounds.getxMin()), (int) (windowBounds.getHeight() - uGridpoints[i].getY() * hScale + windowBounds.getyMin()), 2, uGridpoints[i].getColor());
-            renderer.drawEmptyCircle((int) (vGridpoints[i].getX() * wScale + windowBounds.getxMin()), (int) (windowBounds.getHeight() - vGridpoints[i].getY() * hScale + windowBounds.getyMin()), 2, vGridpoints[i].getColor());
+            renderer.drawEmptyCircle((int) (mGridpoints[i].getX() * wScale + windowBounds.getxMin()), (int) (windowBounds.getHeight() - mGridpoints[i].getY() * hScale + windowBounds.getyMin()), 1, mGridpoints[i].getColor());
+            renderer.drawEmptyCircle((int) (uGridpoints[i].getX() * wScale + windowBounds.getxMin()), (int) (windowBounds.getHeight() - uGridpoints[i].getY() * hScale + windowBounds.getyMin()), 1, uGridpoints[i].getColor());
+            renderer.drawEmptyCircle((int) (vGridpoints[i].getX() * wScale + windowBounds.getxMin()), (int) (windowBounds.getHeight() - vGridpoints[i].getY() * hScale + windowBounds.getyMin()), 1, vGridpoints[i].getColor());
         }
+    }
+
+    public enum CellType
+    {
+        WATER, AIR, WALL
     }
 }

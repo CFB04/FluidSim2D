@@ -36,8 +36,8 @@ public class PICSimulation extends Simulation {
 
         for (int i = 0; i < numParticles; i++)
             this.particles[i] = new PICParticle(
-                    particleBounds.getxMin() + particleBounds.getWidth()/(particlesPerRow - 1) * (i % particlesPerRow),
-                    particleBounds.getyMin() + particleBounds.getHeight()/(particlesPerCol - 1) * (i / particlesPerRow),
+                    particleBounds.getxMin() + 0.5f * particleBounds.getWidth()/(particlesPerRow) + particleBounds.getWidth()/(particlesPerRow) * (i % particlesPerRow),
+                    particleBounds.getyMin() + 0.5f * particleBounds.getWidth()/(particlesPerRow) + particleBounds.getHeight()/(particlesPerCol) * (i / particlesPerRow),
                     0f, 0f, 0xFF22FFFF, 0.05f, 1f);
     }
 
@@ -160,10 +160,34 @@ public class PICSimulation extends Simulation {
      */
     public void eulerianStep(float dt)
     {
-        for (int i = 0; i < grid.mGridpoints.length; i++) {
-            //Dynamics
-            grid.vGridpoints[i].incV(-9.81f * dt);
+        //Dynamics
+        int steps = 1;
+        float divergence = Float.MAX_VALUE;
+        float oRFactor = 1.25f; // Over-relaxation factor
+        for (int i = 0; i < steps; i++) {
+            for (int x = 1; x < grid.getCols() - 1; x++) {
+                for (int y = 1; y < grid.getRows() - 1; y++) {
+                    int j = x + y * grid.getCols();
+
+                    int[] g = grid.getCellVelocities(j);
+
+                    float u1 = grid.uGridpoints[g[0]].getV();
+                    float v1 = grid.vGridpoints[g[1]].getV();
+                    float u2 = grid.uGridpoints[g[2]].getV();
+                    float v2 = grid.vGridpoints[g[3]].getV();
+
+                    divergence = u1 + v1 - u2 - v2;
+
+                    grid.uGridpoints[g[0]].setV(u1 - divergence * 0.25f * oRFactor);
+                    grid.vGridpoints[g[1]].setV(v1 - divergence * 0.25f * oRFactor);
+                    grid.uGridpoints[g[2]].setV(u2 + divergence * 0.25f * oRFactor);
+                    grid.vGridpoints[g[3]].setV(v2 + divergence * 0.25f * oRFactor);
+                }
+            }
         }
+        if(divergence > 0.001) System.out.println(divergence);
+
+        for (int i = 0; i < grid.mGridpoints.length; i++) grid.vGridpoints[i].incV(-9.81f * dt);
     }
 
     @Override
@@ -177,7 +201,7 @@ public class PICSimulation extends Simulation {
     @Override
     public void render(Renderer renderer)
     {
-        grid.render(renderer);
+//        grid.render(renderer);
         renderBox(renderer);
         renderParticles(renderer);
     }
@@ -193,7 +217,7 @@ public class PICSimulation extends Simulation {
             float x = windowBounds.getxMin() + particles[i].getX() * windowBounds.getWidth() / bounds.getWidth();
             float y = windowBounds.getyMin() + (bounds.getHeight() - particles[i].getY()) * windowBounds.getHeight() / bounds.getHeight();
             float r = particles[i].getR() * Application.width / bounds.getWidth();
-            renderer.drawCircle((int) x, (int) y, (int) r, particles[i].getColor());
+            renderer.drawCircle((int) x, (int) y, 2, particles[i].getColor());
         }
     }
 }
