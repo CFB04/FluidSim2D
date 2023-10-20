@@ -36,8 +36,10 @@ public class PICSimulation extends Simulation {
         for (int i = 0; i < numParticles; i++)
             this.particles[i] = new PICParticle(
                     particleBounds.getxMin() + 0.5f * particleBounds.getWidth()/(particlesPerRow) + particleBounds.getWidth()/(particlesPerRow) * (i % particlesPerRow),
-                    particleBounds.getyMin() + 0.5f * particleBounds.getWidth()/(particlesPerRow) + particleBounds.getHeight()/(particlesPerCol) * (i / particlesPerRow),
+                    particleBounds.getyMin() + 0.5f * particleBounds.getHeight()/(particlesPerCol) + particleBounds.getHeight()/(particlesPerCol) * (i / particlesPerRow),
                     0f, 0f, 0xFF22FFFF, 0.05f, 1f);
+
+        init();
     }
 
     @Override
@@ -50,7 +52,7 @@ public class PICSimulation extends Simulation {
     /**
      * This handles the grid to particle transfer as well as particle kinematics
      */
-    private synchronized void lagrangeStep1(float dt)
+    private synchronized void lagrangeStep(float dt)
     {
         for (int i = 0; i < particles.length; i++) {
             int[] gM = grid.selectGridpoints(grid.selectMGridpoint(particles[i]));
@@ -82,7 +84,7 @@ public class PICSimulation extends Simulation {
     /**
      * This handles the particle to grid transfer
      */
-    public void transferLagrangian1()
+    public void transferLagrangian()
     {
         grid.reset();
         for (int x = 1; x < grid.getCols() - 1; x++) {
@@ -153,6 +155,23 @@ public class PICSimulation extends Simulation {
         }
 
         for (int i = 0; i < grid.mGridpoints.length; i++) {
+            int x = i % grid.getCols(), y = i / grid.getCols();
+            if(x == 0) grid.vGridpoints[i].setV(0f);
+            if(x >= grid.getCols() - 2) grid.uGridpoints[i].setV(0f);
+            if(y == 0) grid.vGridpoints[i].setV(0f);
+            if(y >= grid.getRows() - 2) grid.vGridpoints[i].setV(0f);
+
+//            if(grid.cellTypes[i] == PICGrid.CellType.AIR)
+//            {
+//                int[] c = grid.selectCells(i);
+//                if(grid.cellTypes[c[0]] == PICGrid.CellType.AIR) grid.uGridpoints[i].setV(Float.NaN);
+//                if(grid.cellTypes[c[1]] == PICGrid.CellType.AIR) grid.vGridpoints[i].setV(Float.NaN);
+//                if(grid.cellTypes[c[2]] == PICGrid.CellType.AIR) grid.uGridpoints[i - 1].setV(Float.NaN);
+//                if(grid.cellTypes[c[3]] == PICGrid.CellType.AIR) grid.vGridpoints[i - grid.getCols()].setV(Float.NaN);
+//
+//                continue;
+//            }
+
             float wM = grid.mGridpoints[i].getW(), wU = grid.uGridpoints[i].getW(), wV = grid.vGridpoints[i].getW();
             wM = wM == 0f? 1f : 1f / wM;
             wU = wU == 0f? 1f : 1f / wU;
@@ -168,11 +187,12 @@ public class PICSimulation extends Simulation {
      */
     public void eulerianStep(float dt)
     {
-        //Dynamics
+        for (int i = 0; i < grid.mGridpoints.length; i++) grid.vGridpoints[i].incV(-9.81f * dt);
+
         int maxSteps = 20;
-        float divTolerance = 0.001f;
+        float divTolerance = 0.00001f;
         float divergence = Float.MAX_VALUE, s;
-        float oRFactor = 1.25f; // Over-relaxation factor
+        float oRFactor = 1f; // Over-relaxation factor
         for (int i = 0; i < maxSteps; i++) {
             for (int x = 1; x < grid.getCols() - 1; x++) {
                 for (int y = 1; y < grid.getRows() - 1; y++) {
@@ -205,15 +225,13 @@ public class PICSimulation extends Simulation {
 
             if (Math.abs(divergence) < divTolerance) break;
         }
-
-        for (int i = 0; i < grid.mGridpoints.length; i++) grid.vGridpoints[i].incV(-9.81f * dt);
     }
 
     @Override
     public void update(float dt)
     {
-        lagrangeStep1(dt);
-        transferLagrangian1();
+        lagrangeStep(dt);
+        transferLagrangian();
         eulerianStep(dt);
     }
 
@@ -235,7 +253,7 @@ public class PICSimulation extends Simulation {
         for (int i = 0; i < particles.length; i++) {
             float x = windowBounds.getxMin() + particles[i].getX() * windowBounds.getWidth() / bounds.getWidth();
             float y = windowBounds.getyMin() + (bounds.getHeight() - particles[i].getY()) * windowBounds.getHeight() / bounds.getHeight();
-            renderer.setPixel((int) x, (int) y, particles[i].getColor());
+            renderer.drawCircle((int) x, (int) y, 5, particles[i].getColor());
         }
     }
 }

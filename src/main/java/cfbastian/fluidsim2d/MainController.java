@@ -11,8 +11,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.image.*;
 
-import java.io.*;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 
@@ -23,6 +21,13 @@ public class MainController {
     @FXML
     Button playButton;
     boolean play = false;
+
+    @FXML
+    Button stepButton;
+    boolean step = false;
+
+    @FXML
+    Button resetButton;
 
     WritableImage image;
     PixelWriter pixelWriter;
@@ -44,17 +49,7 @@ public class MainController {
         renderer = new Renderer();
         renderLoop = new RenderLoop();
 
-//        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
-//        simulation = new SPHSimulation(
-//                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
-//                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
-        int gridRes = 16, pRes = 32;
-        simulation = new PICSimulation(
-                new Bounds(0f, 16f, 0f, 9f),
-                new Bounds(Application.width * 2f / 64f, Application.width * 62f / 64f, Application.height * 2f / 64f, Application.height * 62f / 64f),
-                new Bounds(4f, 12f, 2.25f, 6.75f),
-                36*pRes*pRes, 8*pRes, 9*gridRes,16*gridRes);
-        simulation.init();
+        createSimulation();
 
         imageView.setFitWidth(Application.width / 2D);
         imageView.setFitHeight(Application.height / 2D);
@@ -84,6 +79,10 @@ public class MainController {
 
             float dt = (float) (elapsedTime - lastTime);
             if(play) simulation.update(dt);
+            if(step) {
+                simulation.update(dt);
+                step = false;
+            }
 
             pixels = renderer.render(simulation);
 
@@ -103,10 +102,36 @@ public class MainController {
         }
     }
 
+    private void createSimulation()
+    {
+        //        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
+//        simulation = new SPHSimulation(
+//                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
+//                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
+        int gridRes = 1, pRes = 2;
+        simulation = new PICSimulation(
+                new Bounds(0f, 16f, 0f, 9f),
+                new Bounds(Application.width * 8f / 64f, Application.width * 56f / 64f, Application.height * 8f / 64f, Application.height * 56f / 64f),
+                new Bounds(4f, 12f, 2.25f, 6.75f),
+                36*pRes*pRes * 0 + 3, 8*pRes * 0 + 3, 9*gridRes,16*gridRes);
+    }
+
     @FXML
     public void play()
     {
         play = !play;
         playButton.setText(play? "❚❚" : "▶︎");
+    }
+
+    @FXML
+    public void step()
+    {
+        if(!play) step = true;
+    }
+
+    @FXML
+    public void reset()
+    {
+        createSimulation();
     }
 }
