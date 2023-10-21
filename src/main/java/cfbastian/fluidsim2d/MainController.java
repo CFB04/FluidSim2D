@@ -1,6 +1,7 @@
 package cfbastian.fluidsim2d;
 
 import cfbastian.fluidsim2d.simulation.Simulation;
+import cfbastian.fluidsim2d.simulation.heightfield.HeightFieldSimulation;
 import cfbastian.fluidsim2d.simulation.iterativemethods.IterativeSimulation;
 import cfbastian.fluidsim2d.simulation.pic.PICSimulation;
 import cfbastian.fluidsim2d.simulation.sph.SPHParticle;
@@ -108,11 +109,15 @@ public class MainController {
 //        simulation = new SPHSimulation(
 //                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
 //                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
-        simulation = new PICSimulation(
-                new Bounds(0f, 16f, 0f, 9f),
-                new Bounds(2, Application.width - 2, 2, Application.height - 2),
-                new Bounds(1f, 5f, 0f, 8f),
-                8f, 4f);
+//        simulation = new PICSimulation(
+//                new Bounds(0f, 16f, 0f, 9f),
+//                new Bounds(2, Application.width - 2, 2, Application.height - 2),
+//                new Bounds(1f, 5f, 0f, 8f),
+//                8f, 4f);
+        simulation = new HeightFieldSimulation(
+                new Bounds(0f, 4f, 0f, 2.25f),
+                new Bounds(160, Application.width - 160, 90, Application.height - 90),
+                32f, 1.4f, 1f);
     }
 
     @FXML

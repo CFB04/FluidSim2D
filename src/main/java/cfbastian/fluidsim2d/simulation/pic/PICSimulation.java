@@ -96,9 +96,9 @@ public class PICSimulation extends Simulation {
         }
 
         // Push particles apart
-        float kStiffness = 0.5f;
+        float kStiffness = 0.1f;
         for (int i = 0; i < particles.length; i++) {
-            int[] idxs = selectAdjacentRefGridCells(i);
+//            int[] idxs = selectAdjacentRefGridCells(i);
 //            for (int j = 0; j < refGridIdxs.length; j++) {
 //                int refCell = selectRefGridCell(particles[j]);
 //                if(!(idxs[0] == refCell || idxs[1] == refCell || idxs[2] == refCell || idxs[3] == refCell || idxs[4] == refCell || idxs[5] == refCell || idxs[6] == refCell || idxs[7] == refCell || idxs[8] == refCell)){
@@ -118,6 +118,7 @@ public class PICSimulation extends Simulation {
 //                particles[j].dy -= kStiffness * p * y1;
 //            }
 
+            // push particles away from walls
             particles[i].dx += kStiffness * getPushApart(particles[i].x);
             particles[i].dx -= kStiffness * getPushApart(bounds.getWidth() - particles[i].x);
             particles[i].dy += kStiffness * getPushApart(particles[i].y);
@@ -271,10 +272,10 @@ public class PICSimulation extends Simulation {
     {
         for (int i = 0; i < grid.mGridpoints.length; i++) grid.vGridpoints[i].v += -9.81f * dt;
 
-        int maxSteps = 50;
-        float divTolerance = 0.0000001f;
+        int maxSteps = 100;
+        float divTolerance = 0f;
         float divergence = Float.MAX_VALUE, s;
-        float oRFactor = 1.25f; // Over-relaxation factor
+        float oRFactor = 1f; // Over-relaxation factor
 
         float kStiffness = 1f, waterDensity = 1f;
 
