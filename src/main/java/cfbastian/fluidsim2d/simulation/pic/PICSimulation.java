@@ -163,30 +163,30 @@ public class PICSimulation extends Simulation {
             grid.cellTypes[grid.selectCell(particles[i])] = PICGrid.CellType.WATER;
         }
 
-        for (int i = 0; i < grid.mGridpoints.length; i++) {
-            // Reset wall cells
-            int x = i % grid.getCols(), y = i / grid.getCols();
-            if(x == 0) {
-                grid.uGridpoints[i].setV(0f);
-                grid.vGridpoints[i].setV(0f);
-                grid.mGridpoints[i].setV(0f);
-            }
-            if(x >= grid.getCols() - 2) grid.uGridpoints[i].setV(0f);
-            if(x >= grid.getCols() - 1) {
-                grid.vGridpoints[i].setV(0f);
-                grid.mGridpoints[i].setV(0f);
-            }
-            if(y == 0) {
-                grid.vGridpoints[i].setV(0f);
-                grid.uGridpoints[i].setV(0f);
-                grid.mGridpoints[i].setV(0f);
-            }
-            if(y >= grid.getRows() - 2) grid.vGridpoints[i].setV(0f);
-            if(y >= grid.getRows() - 1) {
-                grid.uGridpoints[i].setV(0f);
-                grid.mGridpoints[i].setV(0f);
-            }
+        // Reset wall cells
+        for (int x = 0; x < grid.getCols(); x++) {
+            grid.uGridpoints[x].setV(grid.uGridpoints[x + grid.getCols()].getV());
+            grid.uGridpoints[x + grid.getCols() * (grid.getRows() - 1)].setV(grid.uGridpoints[x + grid.getCols() * (grid.getRows() - 2)].getV());
 
+            grid.uGridpoints[x].setW(grid.uGridpoints[x + grid.getCols()].getW());
+            grid.uGridpoints[x + grid.getCols() * (grid.getRows() - 1)].setW(grid.uGridpoints[x + grid.getCols() * (grid.getRows() - 2)].getW());
+
+            grid.vGridpoints[x].setV(0f);
+            grid.vGridpoints[x + grid.getCols() * (grid.getRows() - 2)].setV(0f);
+        }
+        for (int y = 0; y < grid.getRows(); y++) {
+            grid.vGridpoints[y * grid.getCols()].setV(grid.vGridpoints[y * grid.getCols() + 1].getV());
+            grid.vGridpoints[y * grid.getCols() + grid.getCols() - 1].setV(grid.vGridpoints[y * grid.getCols() + grid.getCols() - 2].getV());
+
+            grid.vGridpoints[y * grid.getCols()].setW(grid.vGridpoints[y * grid.getCols() + 1].getW());
+            grid.vGridpoints[y * grid.getCols() + grid.getCols() - 1].setW(grid.vGridpoints[y * grid.getCols() + grid.getCols() - 2].getW());
+
+            grid.uGridpoints[y * grid.getCols()].setV(0f);
+            grid.uGridpoints[y * grid.getCols() + grid.getCols() - 2].setV(0f);
+        }
+
+        for (int i = 0; i < grid.mGridpoints.length; i++) {
+            // Remove velocities from air cells
             if(grid.cellTypes[i] == PICGrid.CellType.AIR)
             {
                 int[] c = grid.selectCells(i);
@@ -196,6 +196,7 @@ public class PICSimulation extends Simulation {
                 if(grid.cellTypes[c[3]] == PICGrid.CellType.AIR) grid.vGridpoints[i - grid.getCols()].setV(Float.NaN);
             }
 
+            // Adjust by weights
             float wM = grid.mGridpoints[i].getW(), wU = grid.uGridpoints[i].getW(), wV = grid.vGridpoints[i].getW();
             wM = wM == 0f? 1f : 1f / wM;
             wU = wU == 0f? 1f : 1f / wU;
@@ -235,11 +236,6 @@ public class PICSimulation extends Simulation {
                 float s1 = grid.cellTypes[c[1]].s;
                 float s2 = grid.cellTypes[c[2]].s;
                 float s3 = grid.cellTypes[c[3]].s;
-
-                if(s0 == 0) grid.uGridpoints[g[0]].setColor(0xFFFFFF00);
-                if(s1 == 0) grid.vGridpoints[g[1]].setColor(0xFFFFFF00);
-                if(s2 == 0) grid.uGridpoints[g[2]].setColor(0xFFFFFF00);
-                if(s3 == 0) grid.vGridpoints[g[3]].setColor(0xFFFFFF00);
 
 //                divergence = u1 + v1 - u2 - v2;
                 divergence = u1 * s0 + v1 * s1 - u2 * s2 - v2 * s3;
