@@ -23,10 +23,14 @@ public class PICSimulation extends Simulation {
 
     private final Bounds windowBounds;
 
+    private final float res;
+
     public PICSimulation(Bounds bounds, Bounds windowBounds, Bounds particleBounds, float res, float refGridResDivisor)
     {
         super(bounds);
         this.windowBounds = windowBounds;
+
+        this.res = res;
 
         int cols = (int) (bounds.getWidth() * res);
         int rows = (int) (bounds.getHeight() * res);
@@ -70,7 +74,7 @@ public class PICSimulation extends Simulation {
             int[] gU = grid.selectGridpoints(grid.selectUGridpoint(particles[i]));
             int[] gV = grid.selectGridpoints(grid.selectVGridpoint(particles[i]));
 
-            //Receive velocities
+            // Receive velocities
             float x1 = particles[i].x - grid.mGridpoints[gM[0]].x;
             float y1 = particles[i].y - grid.mGridpoints[gM[0]].y;
             float x2 = x1 * grid.res, y2 = y1 * grid.res;
@@ -87,14 +91,53 @@ public class PICSimulation extends Simulation {
             particles[i].dx = vX;
             particles[i].dy = vY;
 
-            //Kinematics
-            particles[i].update(bounds, dt);
+            // Update references
+            refGridIdxs[i] = selectRefGridCell(particles[i]);
         }
+
+        // Push particles apart
+        float kStiffness = 0.5f;
+        for (int i = 0; i < particles.length; i++) {
+            int[] idxs = selectAdjacentRefGridCells(i);
+//            for (int j = 0; j < refGridIdxs.length; j++) {
+//                int refCell = selectRefGridCell(particles[j]);
+//                if(!(idxs[0] == refCell || idxs[1] == refCell || idxs[2] == refCell || idxs[3] == refCell || idxs[4] == refCell || idxs[5] == refCell || idxs[6] == refCell || idxs[7] == refCell || idxs[8] == refCell)){
+//                    continue;
+//                }
+//
+//                float x = particles[i].x - particles[j].x, y = particles[i].y - particles[j].y;
+//                float d = (float) Math.sqrt(x*x + y*y);
+//                float p = getPushApart(d);
+//                d = d == 0f? 1f : d;
+//                float invD = 1f/d;
+//                float x1 = x * invD, y1 = y * invD;
+//
+//                particles[i].dx += kStiffness * p * x1;
+//                particles[i].dy += kStiffness * p * y1;
+//                particles[j].dx -= kStiffness * p * x1;
+//                particles[j].dy -= kStiffness * p * y1;
+//            }
+
+            particles[i].dx += kStiffness * getPushApart(particles[i].x);
+            particles[i].dx -= kStiffness * getPushApart(bounds.getWidth() - particles[i].x);
+            particles[i].dy += kStiffness * getPushApart(particles[i].y);
+            particles[i].dy -= kStiffness * getPushApart(bounds.getHeight() - particles[i].y);
+        }
+
+        // Kinematics
+        for (int i = 0; i < particles.length; i++) particles[i].update(bounds, dt);
+    }
+
+    private float getPushApart(float d)
+    {
+        if(d > 1f / res) return 0f;
+        float v = 1f - res * d;
+        return v*v;
     }
 
     private int selectRefGridCell(PICParticle p)
     {
-        return selectRefGridCell(p.x + 1f / refGridRes, p.y + 1f / refGridRes);
+        return selectRefGridCell(p.x, p.y);
     }
 
     private int selectRefGridCell(float x, float y)
@@ -104,6 +147,11 @@ public class PICSimulation extends Simulation {
         if(xi == refGridCols - 1) xi--;
         if(yi == refGridRows - 1) yi--;
         return xi + yi * refGridCols;
+    }
+
+    private int[] selectAdjacentRefGridCells(int i)
+    {
+        return new int[]{i, i + 1, i + refGridCols + 1, i + refGridCols, i + refGridCols - 1, i - 1, i - refGridCols - 1, i - refGridCols, i - refGridCols + 1};
     }
 
     /**

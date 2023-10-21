@@ -105,14 +105,14 @@ public class PICGrid implements Renderable {
         }
     }
 
-    public int selectGridpoint(float x, float y)
+    private int selectGridpoint(float x, float y)
     {
         int xi = (int) ((x - bounds.getXMin()) * res);
         int yi = (int) ((y - bounds.getYMin()) * res);
         return xi + yi * cols;
     }
 
-    public int selectCell(float x, float y)
+    private int selectCell(float x, float y)
     {
         int xi = (int) ((x - bounds.getXMin()) * res);
         int yi = (int) ((y - bounds.getYMin()) * res);

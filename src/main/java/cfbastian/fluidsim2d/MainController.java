@@ -112,7 +112,7 @@ public class MainController {
                 new Bounds(0f, 16f, 0f, 9f),
                 new Bounds(2, Application.width - 2, 2, Application.height - 2),
                 new Bounds(1f, 5f, 0f, 8f),
-                16f, 2f);
+                8f, 4f);
     }
 
     @FXML
