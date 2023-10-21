@@ -52,25 +52,32 @@ public class PICSimulation extends Simulation {
     /**
      * This handles the grid to particle transfer as well as particle kinematics
      */
-    private synchronized void lagrangeStep(float dt)
+    private void lagrangeStep(float dt)
     {
         for (int i = 0; i < particles.length; i++) {
             int[] gM = grid.selectGridpoints(grid.selectMGridpoint(particles[i]));
             int[] gU = grid.selectGridpoints(grid.selectUGridpoint(particles[i]));
             int[] gV = grid.selectGridpoints(grid.selectVGridpoint(particles[i]));
 
+            int[] g = grid.selectCellVelocities(grid.selectCell(particles[i]));
+
+//            grid.uGridpoints[g[0]].setColor(0xFF00FF00);
+//            grid.vGridpoints[g[1]].setColor(0xFF00FF00);
+//            grid.uGridpoints[g[2]].setColor(0xFF00FF00);
+//            grid.vGridpoints[g[3]].setColor(0xFF00FF00);
+
             //Receive velocities
             float x1 = particles[i].getX() - grid.mGridpoints[gM[0]].getX();
             float y1 = particles[i].getY() - grid.mGridpoints[gM[0]].getY();
             float x2 = x1 * grid.getInvGridCellWidth(), y2 = y1 * grid.getInvGridCellHeight();
 
-            float vX = SimMath.lerp(
-                    SimMath.lerp(grid.uGridpoints[gU[0]].getV(), grid.uGridpoints[gU[1]].getV(), y2),
-                    SimMath.lerp(grid.uGridpoints[gU[2]].getV(), grid.uGridpoints[gU[3]].getV(), y2),
+            float vX = SimMath.checkNaNLerp(
+                    SimMath.checkNaNLerp(grid.uGridpoints[gU[0]].getV(), grid.uGridpoints[gU[1]].getV(), y2),
+                    SimMath.checkNaNLerp(grid.uGridpoints[gU[2]].getV(), grid.uGridpoints[gU[3]].getV(), y2),
                     (x2 + 0.5f) % 1f);
-            float vY = SimMath.lerp(
-                    SimMath.lerp(grid.vGridpoints[gV[0]].getV(), grid.vGridpoints[gV[2]].getV(), x2),
-                    SimMath.lerp(grid.vGridpoints[gV[1]].getV(), grid.vGridpoints[gV[3]].getV(), x2),
+            float vY = SimMath.checkNaNLerp(
+                    SimMath.checkNaNLerp(grid.vGridpoints[gV[0]].getV(), grid.vGridpoints[gV[2]].getV(), x2),
+                    SimMath.checkNaNLerp(grid.vGridpoints[gV[1]].getV(), grid.vGridpoints[gV[3]].getV(), x2),
                     (y2 + 0.5f) % 1f);
 
             particles[i].setDx(vX);
@@ -87,6 +94,8 @@ public class PICSimulation extends Simulation {
     public void transferLagrangian()
     {
         grid.reset();
+
+        // Reset cell types
         for (int x = 1; x < grid.getCols() - 1; x++) {
             for (int y = 1; y < grid.getRows() - 1; y++) {
                 grid.cellTypes[x + y * grid.getCols()] = PICGrid.CellType.AIR;
@@ -155,22 +164,37 @@ public class PICSimulation extends Simulation {
         }
 
         for (int i = 0; i < grid.mGridpoints.length; i++) {
+            // Reset wall cells
             int x = i % grid.getCols(), y = i / grid.getCols();
-            if(x == 0) grid.vGridpoints[i].setV(0f);
+            if(x == 0) {
+                grid.uGridpoints[i].setV(0f);
+                grid.vGridpoints[i].setV(0f);
+                grid.mGridpoints[i].setV(0f);
+            }
             if(x >= grid.getCols() - 2) grid.uGridpoints[i].setV(0f);
-            if(y == 0) grid.vGridpoints[i].setV(0f);
+            if(x >= grid.getCols() - 1) {
+                grid.vGridpoints[i].setV(0f);
+                grid.mGridpoints[i].setV(0f);
+            }
+            if(y == 0) {
+                grid.vGridpoints[i].setV(0f);
+                grid.uGridpoints[i].setV(0f);
+                grid.mGridpoints[i].setV(0f);
+            }
             if(y >= grid.getRows() - 2) grid.vGridpoints[i].setV(0f);
+            if(y >= grid.getRows() - 1) {
+                grid.uGridpoints[i].setV(0f);
+                grid.mGridpoints[i].setV(0f);
+            }
 
-//            if(grid.cellTypes[i] == PICGrid.CellType.AIR)
-//            {
-//                int[] c = grid.selectCells(i);
-//                if(grid.cellTypes[c[0]] == PICGrid.CellType.AIR) grid.uGridpoints[i].setV(Float.NaN);
-//                if(grid.cellTypes[c[1]] == PICGrid.CellType.AIR) grid.vGridpoints[i].setV(Float.NaN);
-//                if(grid.cellTypes[c[2]] == PICGrid.CellType.AIR) grid.uGridpoints[i - 1].setV(Float.NaN);
-//                if(grid.cellTypes[c[3]] == PICGrid.CellType.AIR) grid.vGridpoints[i - grid.getCols()].setV(Float.NaN);
-//
-//                continue;
-//            }
+            if(grid.cellTypes[i] == PICGrid.CellType.AIR)
+            {
+                int[] c = grid.selectCells(i);
+                if(grid.cellTypes[c[0]] == PICGrid.CellType.AIR) grid.uGridpoints[i].setV(Float.NaN);
+                if(grid.cellTypes[c[1]] == PICGrid.CellType.AIR) grid.vGridpoints[i].setV(Float.NaN);
+                if(grid.cellTypes[c[2]] == PICGrid.CellType.AIR) grid.uGridpoints[i - 1].setV(Float.NaN);
+                if(grid.cellTypes[c[3]] == PICGrid.CellType.AIR) grid.vGridpoints[i - grid.getCols()].setV(Float.NaN);
+            }
 
             float wM = grid.mGridpoints[i].getW(), wU = grid.uGridpoints[i].getW(), wV = grid.vGridpoints[i].getW();
             wM = wM == 0f? 1f : 1f / wM;
@@ -185,42 +209,48 @@ public class PICSimulation extends Simulation {
     /**
      * This handles the grid dynamics
      */
-    public void eulerianStep(float dt)
+    public void eulerStep(float dt)
     {
         for (int i = 0; i < grid.mGridpoints.length; i++) grid.vGridpoints[i].incV(-9.81f * dt);
 
-        int maxSteps = 20;
-        float divTolerance = 0.00001f;
+        int maxSteps = 50;
+        float divTolerance = 0.0000001f;
         float divergence = Float.MAX_VALUE, s;
-        float oRFactor = 1f; // Over-relaxation factor
+        float oRFactor = 1.25f; // Over-relaxation factor
         for (int i = 0; i < maxSteps; i++) {
-            for (int x = 1; x < grid.getCols() - 1; x++) {
-                for (int y = 1; y < grid.getRows() - 1; y++) {
-                    int j = x + y * grid.getCols();
+            for (int j = 0; j < grid.cellTypes.length; j++) {
+                int x = j % grid.getCols(), y = j / grid.getCols();
+                if(x == 0 || y == 0 || x == grid.getCols() - 1 || y == grid.getRows() - 1) continue;
+                if(grid.cellTypes[j] == PICGrid.CellType.AIR) continue;
 
-                    int[] g = grid.getCellVelocities(j);
-                    int[] c = grid.selectCells(j);
+                int[] g = grid.selectCellVelocities(j);
+                int[] c = grid.selectCells(j);
 
-                    float u1 = grid.uGridpoints[g[0]].getV();
-                    float v1 = grid.vGridpoints[g[1]].getV();
-                    float u2 = grid.uGridpoints[g[2]].getV();
-                    float v2 = grid.vGridpoints[g[3]].getV();
+                float u1 = grid.uGridpoints[g[0]].getV();
+                float v1 = grid.vGridpoints[g[1]].getV();
+                float u2 = grid.uGridpoints[g[2]].getV();
+                float v2 = grid.vGridpoints[g[3]].getV();
 
-                    float s0 = grid.cellTypes[c[0]].s;
-                    float s1 = grid.cellTypes[c[1]].s;
-                    float s2 = grid.cellTypes[c[2]].s;
-                    float s3 = grid.cellTypes[c[3]].s;
+                float s0 = grid.cellTypes[c[0]].s;
+                float s1 = grid.cellTypes[c[1]].s;
+                float s2 = grid.cellTypes[c[2]].s;
+                float s3 = grid.cellTypes[c[3]].s;
 
-                    divergence = u1 + v1 - u2 - v2;
+                if(s0 == 0) grid.uGridpoints[g[0]].setColor(0xFFFFFF00);
+                if(s1 == 0) grid.vGridpoints[g[1]].setColor(0xFFFFFF00);
+                if(s2 == 0) grid.uGridpoints[g[2]].setColor(0xFFFFFF00);
+                if(s3 == 0) grid.vGridpoints[g[3]].setColor(0xFFFFFF00);
 
-                    s = s0 + s1 + s2 + s3;
-                    s = 1f / s;
+//                divergence = u1 + v1 - u2 - v2;
+                divergence = u1 * s0 + v1 * s1 - u2 * s2 - v2 * s3;
 
-                    grid.uGridpoints[g[0]].setV(u1 - divergence * s0 * s * oRFactor);
-                    grid.vGridpoints[g[1]].setV(v1 - divergence * s1 * s * oRFactor);
-                    grid.uGridpoints[g[2]].setV(u2 + divergence * s2 * s * oRFactor);
-                    grid.vGridpoints[g[3]].setV(v2 + divergence * s3 * s * oRFactor);
-                }
+                s = s0 + s1 + s2 + s3;
+                s = 1f / s;
+
+                grid.uGridpoints[g[0]].setV(u1 - divergence * s0 * s * oRFactor);
+                grid.vGridpoints[g[1]].setV(v1 - divergence * s1 * s * oRFactor);
+                grid.uGridpoints[g[2]].setV(u2 + divergence * s2 * s * oRFactor);
+                grid.vGridpoints[g[3]].setV(v2 + divergence * s3 * s * oRFactor);
             }
 
             if (Math.abs(divergence) < divTolerance) break;
@@ -232,7 +262,7 @@ public class PICSimulation extends Simulation {
     {
         lagrangeStep(dt);
         transferLagrangian();
-        eulerianStep(dt);
+        eulerStep(dt);
     }
 
     @Override

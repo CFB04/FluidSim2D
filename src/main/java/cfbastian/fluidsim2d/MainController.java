@@ -108,12 +108,12 @@ public class MainController {
 //        simulation = new SPHSimulation(
 //                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
 //                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
-        int gridRes = 1, pRes = 2;
+        int gridRes = 8, pRes = 16;
         simulation = new PICSimulation(
                 new Bounds(0f, 16f, 0f, 9f),
                 new Bounds(Application.width * 8f / 64f, Application.width * 56f / 64f, Application.height * 8f / 64f, Application.height * 56f / 64f),
                 new Bounds(4f, 12f, 2.25f, 6.75f),
-                36*pRes*pRes * 0 + 3, 8*pRes * 0 + 3, 9*gridRes,16*gridRes);
+                36*pRes*pRes, 8*pRes, 9*gridRes,16*gridRes);
     }
 
     @FXML

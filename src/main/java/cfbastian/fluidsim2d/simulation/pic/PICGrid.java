@@ -77,24 +77,16 @@ public class PICGrid implements Renderable {
             uGridpoints[i].reset();
             vGridpoints[i].reset();
 
-            int x = i % cols, y = i / cols;
-            if(y == 0) vGridpoints[i].setColor(0xFFFF00FF);
-            if(y >= rows - 2) vGridpoints[i].setColor(0xFFFF00FF);
-            if(x == 0) uGridpoints[i].setColor(0xFFFF00FF);
-            if(x >= cols - 2) uGridpoints[i].setColor(0xFFFF00FF);
-
-//            gridpoints[i].setVY(1f);
-//            uGridpoints[i].setV(-2f * (mGridpoints[i].getY() - bounds.getCenterY()));
-//            vGridpoints[i].setV(2f * (mGridpoints[i].getX() - bounds.getCenterX()));
-//            uGridpoints[i].setV(0f);
-            vGridpoints[i].setV(1f);
-//            mGridpoints[i].setVY(0.2f);
-//            float x = gridpoints[i].getX() - bounds.getCenterX(), y = gridpoints[i].getY() - bounds.getCenterY();
-//            float mag = (float) Math.sqrt(x*x + y*y);
+//            uGridpoints[i].setV(2f * (mGridpoints[i].getY() - bounds.getCenterY()));
+//            vGridpoints[i].setV(-2f * (mGridpoints[i].getX() - bounds.getCenterX()));
+//            uGridpoints[i].incV(0f);
+//            vGridpoints[i].incV(5f);
+//            float x1 = mGridpoints[i].getX() - bounds.getCenterX(), y1 = mGridpoints[i].getY() - bounds.getCenterY();
+//            float mag = (float) Math.sqrt(x1*x1 + y1*y1);
 //            mag = mag == 0f? 1f : mag;
 //            mag = 1f;
-//            gridpoints[i].setVX(x/mag);
-//            gridpoints[i].setVY(y/mag);
+//            uGridpoints[i].setV(2f * x1/mag);
+//            vGridpoints[i].setV(2f * y1/mag);
         }
     }
 
@@ -115,9 +107,18 @@ public class PICGrid implements Renderable {
         return xi + yi * cols;
     }
 
+    public int selectCell(float x, float y)
+    {
+        int xi = (int) ((x - bounds.getxMin()) * invGridCellWidth);
+        int yi = (int) ((y - bounds.getyMin()) * invGridCellHeight);
+        if(xi == cols - 1) xi--;
+        if(yi == rows - 1) yi--;
+        return xi + yi * cols;
+    }
+
     public int selectCell(Particle p)
     {
-        return selectGridpoint(p.getX() + 1f / invGridCellWidth, p.getY() + 1f / invGridCellHeight);
+        return selectCell(p.getX() + 1f / invGridCellWidth, p.getY() + 1f / invGridCellHeight);
     }
 
     public int[] selectCells(int i)
@@ -137,12 +138,12 @@ public class PICGrid implements Renderable {
 
     public int selectUGridpoint(PICParticle p)
     {
-        return selectGridpoint(p.getX() + 1f * 0.5f / invGridCellWidth, p.getY() + 0.5f / invGridCellHeight);
+        return selectGridpoint(p.getX(), p.getY() + 0.5f / invGridCellHeight);
     }
 
     public int selectVGridpoint(PICParticle p)
     {
-        return selectGridpoint(p.getX() + 0.5f / invGridCellWidth, p.getY() + 1f * 0.5f / invGridCellHeight);
+        return selectGridpoint(p.getX() + 0.5f / invGridCellWidth, p.getY());
     }
 
     public int[] selectGridpoints(int i)
@@ -155,7 +156,7 @@ public class PICGrid implements Renderable {
         return g;
     }
 
-    public int[] getCellVelocities(int cell)
+    public int[] selectCellVelocities(int cell)
     {
         int[] g = new int[4];
         g[0] = cell; // u
@@ -192,7 +193,7 @@ public class PICGrid implements Renderable {
             renderer.drawRectangle((int) ((mGridpoints[i].getX() - 0.5f / invGridCellWidth) * wScale + windowBounds.getxMin()), (int) (windowBounds.getHeight() - (mGridpoints[i].getY() + 0.5f / invGridCellHeight) * hScale + windowBounds.getyMin()), (int) (wScale/ invGridCellWidth), (int) (hScale/ invGridCellHeight), color);
         }
 
-        renderStaggeredGrid(renderer);
+//        renderStaggeredGrid(renderer);
     }
 
     private void renderStaggeredGrid(Renderer renderer)
@@ -220,7 +221,7 @@ public class PICGrid implements Renderable {
     {
         WATER(1), AIR(1), WALL(0);
 
-        float s;
+        final float s;
 
         CellType(float s) {
             this.s = s;
