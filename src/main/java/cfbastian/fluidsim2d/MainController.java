@@ -104,11 +104,11 @@ public class MainController {
 
     private void createSimulation()
     {
-        //        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
+//        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
 //        simulation = new SPHSimulation(
 //                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
 //                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
-        int gridRes = 4, pRes = 16;
+        int gridRes = 16, pRes = 16;
         simulation = new PICSimulation(
                 new Bounds(0f, 16f, 0f, 9f),
                 new Bounds(Application.width * 8f / 64f, Application.width * 56f / 64f, Application.height * 8f / 64f, Application.height * 56f / 64f),

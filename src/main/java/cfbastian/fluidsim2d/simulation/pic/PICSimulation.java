@@ -59,13 +59,6 @@ public class PICSimulation extends Simulation {
             int[] gU = grid.selectGridpoints(grid.selectUGridpoint(particles[i]));
             int[] gV = grid.selectGridpoints(grid.selectVGridpoint(particles[i]));
 
-            int[] g = grid.selectCellVelocities(grid.selectCell(particles[i]));
-
-//            grid.uGridpoints[g[0]].setColor(0xFF00FF00);
-//            grid.vGridpoints[g[1]].setColor(0xFF00FF00);
-//            grid.uGridpoints[g[2]].setColor(0xFF00FF00);
-//            grid.vGridpoints[g[3]].setColor(0xFF00FF00);
-
             //Receive velocities
             float x1 = particles[i].getX() - grid.mGridpoints[gM[0]].getX();
             float y1 = particles[i].getY() - grid.mGridpoints[gM[0]].getY();
@@ -197,11 +190,9 @@ public class PICSimulation extends Simulation {
             }
 
             // Adjust by weights
-            float wM = grid.mGridpoints[i].getW(), wU = grid.uGridpoints[i].getW(), wV = grid.vGridpoints[i].getW();
-            wM = wM == 0f? 1f : 1f / wM;
+            float wU = grid.uGridpoints[i].getW(), wV = grid.vGridpoints[i].getW();
             wU = wU == 0f? 1f : 1f / wU;
             wV = wV == 0f? 1f : 1f / wV;
-            grid.mGridpoints[i].setV(grid.mGridpoints[i].getV() * wM);
             grid.uGridpoints[i].setV(grid.uGridpoints[i].getV() * wU);
             grid.vGridpoints[i].setV(grid.vGridpoints[i].getV() * wV);
         }
@@ -218,6 +209,9 @@ public class PICSimulation extends Simulation {
         float divTolerance = 0.0000001f;
         float divergence = Float.MAX_VALUE, s;
         float oRFactor = 1.25f; // Over-relaxation factor
+
+        float kStiffness = 1f, waterDensity = 1f;
+
         for (int i = 0; i < maxSteps; i++) {
             for (int j = 0; j < grid.cellTypes.length; j++) {
                 int x = j % grid.getCols(), y = j / grid.getCols();
@@ -237,8 +231,8 @@ public class PICSimulation extends Simulation {
                 float s2 = grid.cellTypes[c[2]].s;
                 float s3 = grid.cellTypes[c[3]].s;
 
-//                divergence = u1 + v1 - u2 - v2;
-                divergence = u1 * s0 + v1 * s1 - u2 * s2 - v2 * s3;
+//                divergence = u1 + v1 - u2 - v2 - kStiffness * (grid.mGridpoints[j].getV() - waterDensity);
+                divergence = u1 * s0 + v1 * s1 - u2 * s2 - v2 * s3 - kStiffness * (grid.mGridpoints[j].getV() - waterDensity);
 
                 s = s0 + s1 + s2 + s3;
                 s = 1f / s;
