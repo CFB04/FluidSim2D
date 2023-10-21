@@ -95,7 +95,7 @@ public class MainController {
 
             while(elapsedTime - timer > 1)
             {
-                System.out.println(frames);
+                System.out.print(frames + "\t");
                 timer++;
                 frames = 0;
             }
@@ -108,12 +108,11 @@ public class MainController {
 //        simulation = new SPHSimulation(
 //                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
 //                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
-        int gridRes = 16, pRes = 16;
         simulation = new PICSimulation(
                 new Bounds(0f, 16f, 0f, 9f),
-                new Bounds(Application.width * 8f / 64f, Application.width * 56f / 64f, Application.height * 8f / 64f, Application.height * 56f / 64f),
-                new Bounds(1f, 5f, 0.5f, 6.5f),
-                4*6*pRes*pRes, 4*pRes, 9*gridRes,16*gridRes);
+                new Bounds(2, Application.width - 2, 2, Application.height - 2),
+                new Bounds(1f, 5f, 0f, 8f),
+                16f, 2f);
     }
 
     @FXML

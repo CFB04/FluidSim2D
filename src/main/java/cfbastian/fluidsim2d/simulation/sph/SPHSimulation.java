@@ -21,8 +21,8 @@ public class SPHSimulation extends Simulation {
 
         for (int i = 0; i < numParticles; i++)
             this.particles[i] = new SPHParticle(
-                    particleBounds.getxMin() + particleBounds.getWidth()/particlesPerRow * (i % particlesPerRow),
-                    particleBounds.getyMin() + particleBounds.getHeight()/particlesPerCol * (i / particlesPerRow),
+                    particleBounds.getXMin() + particleBounds.getWidth()/particlesPerRow * (i % particlesPerRow),
+                    particleBounds.getYMin() + particleBounds.getHeight()/particlesPerCol * (i / particlesPerRow),
                     (float) r.nextGaussian() * 5f, (float) r.nextGaussian()*2.5f, 0xFF22FFFF, 0.01f);
     }
 
@@ -34,24 +34,24 @@ public class SPHSimulation extends Simulation {
             p.accelerate(0f, -9.81f * dt);
             float xNew = p.getX() + p.getDx() * dt;
             float yNew = p.getY() + p.getDy() * dt;
-            if(xNew < bounds.getxMin())
+            if(xNew < bounds.getXMin())
             {
-                xNew = 2 * bounds.getxMin() - xNew;
+                xNew = 2 * bounds.getXMin() - xNew;
                 p.setDx(-p.getDx() * decay);
             }
-            if(xNew > bounds.getxMax())
+            if(xNew > bounds.getXMax())
             {
-                xNew = 2 * bounds.getxMax() - xNew;
+                xNew = 2 * bounds.getXMax() - xNew;
                 p.setDx(-p.getDx() * decay);
             }
-            if(yNew < bounds.getyMin())
+            if(yNew < bounds.getYMin())
             {
-                yNew = 2 * bounds.getyMin() - yNew;
+                yNew = 2 * bounds.getYMin() - yNew;
                 p.setDy(-p.getDy() * decay);
             }
-            if(yNew > bounds.getyMax())
+            if(yNew > bounds.getYMax())
             {
-                yNew = 2 * bounds.getyMax() - yNew;
+                yNew = 2 * bounds.getYMax() - yNew;
                 p.setDy(-p.getDy() * decay);
             }
             p.setX(xNew);

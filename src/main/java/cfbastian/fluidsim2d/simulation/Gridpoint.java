@@ -1,8 +1,8 @@
 package cfbastian.fluidsim2d.simulation;
 
 public class Gridpoint {
-    protected float x, y;
-    protected float v, w;
+    public final float x, y;
+    public float v, w;
     protected int color;
 
     public Gridpoint(float x, float y, int color) {

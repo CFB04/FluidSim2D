@@ -31,35 +31,35 @@ public class Bounds {
         return yMin + getHeight()/2f;
     }
 
-    public float getxMin() {
+    public float getXMin() {
         return xMin;
     }
 
-    public void setxMin(float xMin) {
+    public void setXMin(float xMin) {
         this.xMin = xMin;
     }
 
-    public float getxMax() {
+    public float getXMax() {
         return xMax;
     }
 
-    public void setxMax(float xMax) {
+    public void setXMax(float xMax) {
         this.xMax = xMax;
     }
 
-    public float getyMin() {
+    public float getYMin() {
         return yMin;
     }
 
-    public void setyMin(float yMin) {
+    public void setYMin(float yMin) {
         this.yMin = yMin;
     }
 
-    public float getyMax() {
+    public float getYMax() {
         return yMax;
     }
 
-    public void setyMax(float yMax) {
+    public void setYMax(float yMax) {
         this.yMax = yMax;
     }
 }
