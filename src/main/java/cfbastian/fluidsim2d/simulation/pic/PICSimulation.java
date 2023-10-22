@@ -339,7 +339,7 @@ public class PICSimulation extends Simulation {
     {
         for (int i = 0; i < particles.length; i++) {
             float x = windowBounds.getXMin() + particles[i].x * windowBounds.getWidth() / bounds.getWidth();
-            float y = windowBounds.getYMin() + (bounds.getHeight() - particles[i].y) * windowBounds.getHeight() / bounds.getHeight();
+            float y = windowBounds.getYMin() + particles[i].y * windowBounds.getHeight() / bounds.getHeight();
             renderer.drawCircle((int) x, (int) y, 3, particles[i].getColor());
         }
     }

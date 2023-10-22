@@ -10,7 +10,6 @@ public class HeightFieldSimulation extends Simulation {
 
     Bounds windowBounds;
 
-    private final float res;
     private final int cols;
     private float[] a, v, heights;
     private final float colWidth;
@@ -20,12 +19,12 @@ public class HeightFieldSimulation extends Simulation {
     public HeightFieldSimulation(Bounds bounds, Bounds windowBounds, float res, float waveSpeed, float startHeight) {
         super(bounds);
         this.windowBounds = windowBounds;
-        this.res = res;
         this.cols = (int) (res * bounds.getWidth());
         this.a = new float[cols];
         this.v = new float[cols];
         this.heights = new float[cols];
-        this.colWidth = 1f / res;
+        this.colWidth = bounds.getWidth() / cols;
+        // waveSpeed * dt < colWidth (CFL condition)
         this.k = waveSpeed * waveSpeed / (colWidth * colWidth);
         this.startHeight = startHeight;
 
@@ -41,23 +40,41 @@ public class HeightFieldSimulation extends Simulation {
             v[i] = 0f;
         }
         for (int i = 0; i < cols; i++) {
-            float pow = 2f * (2f * i / cols - 1f);
-            pow *= pow;
-            heights[i] += 1f * ((float) Math.pow(Math.E, -pow) - 0.5f);
+//            float pow = 2f * (2f * i / cols - 1f);
+//            pow *= pow;
+//            heights[i] += 1.5f * ((float) Math.pow(Math.E, -pow) - 0.5f);
+//            float pow = 10f * (2f * i / cols - 1f);
+//            pow *= pow;
+//            heights[i] += 0.3f * (float) Math.pow(Math.E, -pow);
+//            heights[i] += (i / (float) cols - 0.5f);
+            heights[i] += 0.2f * Math.max(1f - Math.abs(32f * (i - cols/2f) / cols), 0f);
             heights[i] = Math.max(heights[i], bounds.getYMin());
             heights[i] = Math.min(heights[i], bounds.getYMax());
         }
+//        heights[(int) (cols * 1f / 3f)-1] -= 0.05f;
+//        heights[(int) (cols * 1f / 3f)] -= 0.1f;
+//        heights[(int) (cols * 1f / 3f)+1] -= 0.05f;
+//        heights[(int) (cols * 2f / 3f)-1] += 0.05f;
+//        heights[(int) (cols * 2f / 3f)] += 0.1f;
+//        heights[(int) (cols * 2f / 3f)+1] += 0.05f;
     }
 
     @Override
     public void update(float dt) {
         for (int i = 0; i < cols; i++) {
-            int before = i - 1, after = i + 1;
-            before = before < 0? before + cols : before;
-            after %= cols;
-            a[i] = k * ((heights[before] + heights[after]) - 2f * heights[i]);
+            float before = 0f, after = 0f, c = 0f;
+            if(i - 1 >= 0) {
+                before = heights[i - 1];
+                c++;
+            }
+            if(i + 1 < cols) {
+                after = heights[i + 1];
+                c++;
+            }
+            a[i] = k * (before + after - c * heights[i]);
         }
         for (int i = 0; i < cols; i++) {
+            v[i] *= 0.999f;
             v[i] += dt * a[i];
             heights[i] += v[i] * dt;
             heights[i] = Math.max(heights[i], bounds.getYMin());
@@ -67,10 +84,12 @@ public class HeightFieldSimulation extends Simulation {
 
     @Override
     public void render(Renderer renderer) {
+        float dispColWidth = bounds.getWidth() / (cols - 1f);
         float xStart = windowBounds.getXMin(), yStart = windowBounds.getYMin();
         float xScalar = windowBounds.getWidth() / bounds.getWidth(), yScalar = windowBounds.getWidth() / bounds.getWidth();
-        for (int i = 0; i < cols; i++) {
-            renderer.drawRectangle((int) (xStart + i * colWidth * xScalar), (int) (windowBounds.getYMax() - heights[i] * yScalar), (int) (colWidth * xScalar), (int) (heights[i] * yScalar), 0xFF6666FF);
+
+        for (int i = 0; i < cols - 1; i++) {
+            renderer.drawTrapezoid((int) (xStart + i * dispColWidth * xScalar), (int) yStart, (int) (dispColWidth * xScalar), (int) (heights[i] * yScalar), (int) (heights[i + 1] * yScalar), 0xFF6666FF);
         }
 
         renderBox(renderer);

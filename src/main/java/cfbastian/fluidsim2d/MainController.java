@@ -105,7 +105,7 @@ public class MainController {
 
     private void createSimulation()
     {
-//        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
+        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
 //        simulation = new SPHSimulation(
 //                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
 //                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
@@ -114,10 +114,10 @@ public class MainController {
 //                new Bounds(2, Application.width - 2, 2, Application.height - 2),
 //                new Bounds(1f, 5f, 0f, 8f),
 //                8f, 4f);
-        simulation = new HeightFieldSimulation(
-                new Bounds(0f, 4f, 0f, 2.25f),
-                new Bounds(160, Application.width - 160, 90, Application.height - 90),
-                32f, 1.4f, 1f);
+//        simulation = new HeightFieldSimulation(
+//                new Bounds(0f, 16f/4f, 0f, 9f/4f),
+//                new Bounds(160, Application.width - 160, 90, Application.height - 90),
+//                32f, 1f, 1f);
     }
 
     @FXML

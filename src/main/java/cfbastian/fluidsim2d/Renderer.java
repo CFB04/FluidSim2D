@@ -1,6 +1,7 @@
 package cfbastian.fluidsim2d;
 
 import cfbastian.fluidsim2d.simulation.Renderable;
+import cfbastian.fluidsim2d.simulation.util.SimMath;
 
 import java.util.Arrays;
 
@@ -25,6 +26,7 @@ public class Renderer {
 
     public void setPixel(int x, int y, int color)
     {
+        y = Application.height - y;
         if(x >= 0 && x < Application.width && y >= 0 && y < Application.height) pixels[x + Application.width * y] = color;
     }
 
@@ -88,6 +90,16 @@ public class Renderer {
             int x1 = (int) (Math.sqrt(rSqrd - y1 * y1) + 0.5);
             setPixel(x + x1, y + y1, color);
             setPixel(x - x1, y + y1, color);
+        }
+    }
+
+    public void drawTrapezoid(int x, int y, int w, int h1, int h2, int color)
+    {
+        for (int x1 = x; x1 < x + w; x1++) {
+            int h = (int) SimMath.lerp(h1, h2, (x1 - x) / (float) w);
+            for (int y1 = y; y1 < y + h; y1++) {
+                setPixel(x1, y1, color);
+            }
         }
     }
 }
