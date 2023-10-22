@@ -1,6 +1,7 @@
 package cfbastian.fluidsim2d;
 
 import cfbastian.fluidsim2d.simulation.Simulation;
+import cfbastian.fluidsim2d.simulation.eulerian.EulerianSimulation;
 import cfbastian.fluidsim2d.simulation.heightfield.HeightFieldSimulation;
 import cfbastian.fluidsim2d.simulation.iterativemethods.IterativeSimulation;
 import cfbastian.fluidsim2d.simulation.pic.PICSimulation;
@@ -79,7 +80,8 @@ public class MainController {
             double elapsedTime = (now - startTime)/1000000000D;
 
             float dt = (float) (elapsedTime - lastTime);
-            if(play) simulation.update(dt);
+            if(play) simulation.update(dt * 0.5f);
+            if(play) simulation.update(dt * 0.5f);
             if(step) {
                 simulation.update(dt);
                 step = false;
@@ -105,19 +107,23 @@ public class MainController {
 
     private void createSimulation()
     {
-        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
+//        simulation = new IterativeSimulation(new Bounds(0f, 16f, 0f, 9f), 100000);
 //        simulation = new SPHSimulation(
 //                new Bounds(0f, 16f, 0f, 9f), 16*9*50*50,
 //                new Bounds(4f, 12f, 3f, 7.5f), 16*50);
-//        simulation = new PICSimulation(
-//                new Bounds(0f, 16f, 0f, 9f),
-//                new Bounds(2, Application.width - 2, 2, Application.height - 2),
-//                new Bounds(1f, 5f, 0f, 8f),
-//                8f, 4f);
+        simulation = new PICSimulation(
+                new Bounds(0f, 16f, 0f, 9f),
+                new Bounds(2, Application.width - 2, 2, Application.height - 2),
+                new Bounds(0.1f, 4.1f, 0.1f, 8.1f),
+                16, 4f);
 //        simulation = new HeightFieldSimulation(
 //                new Bounds(0f, 16f/4f, 0f, 9f/4f),
 //                new Bounds(160, Application.width - 160, 90, Application.height - 90),
-//                32f, 1f, 1f);
+//                32, 1f, 1f);
+//        simulation = new EulerianSimulation(
+//                new Bounds(0f, 16f, 0f, 9f),
+//                new Bounds(160, Application.width - 160, 90, Application.height - 90),
+//                1);
     }
 
     @FXML

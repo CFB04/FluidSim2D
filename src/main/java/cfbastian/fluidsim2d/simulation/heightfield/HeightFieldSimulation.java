@@ -16,7 +16,7 @@ public class HeightFieldSimulation extends Simulation {
     private final float k;
     private final float startHeight;
 
-    public HeightFieldSimulation(Bounds bounds, Bounds windowBounds, float res, float waveSpeed, float startHeight) {
+    public HeightFieldSimulation(Bounds bounds, Bounds windowBounds, int res, float waveSpeed, float startHeight) {
         super(bounds);
         this.windowBounds = windowBounds;
         this.cols = (int) (res * bounds.getWidth());
@@ -74,7 +74,7 @@ public class HeightFieldSimulation extends Simulation {
             a[i] = k * (before + after - c * heights[i]);
         }
         for (int i = 0; i < cols; i++) {
-            v[i] *= 0.999f;
+            v[i] *= 0.995f;
             v[i] += dt * a[i];
             heights[i] += v[i] * dt;
             heights[i] = Math.max(heights[i], bounds.getYMin());

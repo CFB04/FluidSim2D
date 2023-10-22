@@ -15,6 +15,9 @@ import cfbastian.fluidsim2d.simulation.util.SimMath;
  */
 public class PICSimulation extends Simulation {
 
+    // TODO fix boundary stability issues
+    // TODO fix particle separator stability issues
+
     private final PICParticle[] particles;
     PICGrid grid;
 
@@ -25,18 +28,16 @@ public class PICSimulation extends Simulation {
 
     private final float res;
 
-    public PICSimulation(Bounds bounds, Bounds windowBounds, Bounds particleBounds, float res, float refGridResDivisor)
+    public PICSimulation(Bounds bounds, Bounds windowBounds, Bounds particleBounds, int res, float refGridResDivisor)
     {
         super(bounds);
         this.windowBounds = windowBounds;
 
         this.res = res;
 
-        int cols = (int) (bounds.getWidth() * res);
-        int rows = (int) (bounds.getHeight() * res);
-        int numParticles = (int) (particleBounds.getWidth() * particleBounds.getHeight() * res * res);
-        int particlesPerRow = (int) (particleBounds.getWidth() * res);
-        int particlesPerCol = (int) (particleBounds.getHeight() * res);
+        int numParticles = (int) (particleBounds.getWidth() * particleBounds.getHeight() * res * res * 4);
+        int particlesPerRow = (int) (particleBounds.getWidth() * res * 2);
+        int particlesPerCol = (int) (particleBounds.getHeight() * res * 2);
 
         this.refGridRes = (int) (res / refGridResDivisor);
         this.refGridCols = (int) (bounds.getWidth() * refGridRes);
@@ -46,7 +47,7 @@ public class PICSimulation extends Simulation {
 
         this.particles = new PICParticle[numParticles];
         this.refGridIdxs = new int[numParticles];
-        this.grid = new PICGrid(bounds, windowBounds, rows, cols, res);
+        this.grid = new PICGrid(bounds, windowBounds, res);
 
         for (int i = 0; i < numParticles; i++)
             this.particles[i] = new PICParticle(
@@ -96,33 +97,28 @@ public class PICSimulation extends Simulation {
         }
 
         // Push particles apart
-        float kStiffness = 0.1f;
+        float kStiffness = 1f;
         for (int i = 0; i < particles.length; i++) {
 //            int[] idxs = selectAdjacentRefGridCells(i);
 //            for (int j = 0; j < refGridIdxs.length; j++) {
 //                int refCell = selectRefGridCell(particles[j]);
-//                if(!(idxs[0] == refCell || idxs[1] == refCell || idxs[2] == refCell || idxs[3] == refCell || idxs[4] == refCell || idxs[5] == refCell || idxs[6] == refCell || idxs[7] == refCell || idxs[8] == refCell)){
+//                if(!(idxs[0] == refCell || idxs[1] == refCell || idxs[2] == refCell || idxs[3] == refCell || idxs[4] == refCell || idxs[5] == refCell || idxs[6] == refCell || idxs[7] == refCell || idxs[8] == refCell))
 //                    continue;
-//                }
 //
 //                float x = particles[i].x - particles[j].x, y = particles[i].y - particles[j].y;
-//                float d = (float) Math.sqrt(x*x + y*y);
-//                float p = getPushApart(d);
-//                d = d == 0f? 1f : d;
-//                float invD = 1f/d;
-//                float x1 = x * invD, y1 = y * invD;
+//                float p = getPushApart((float) Math.sqrt(x*x + y*y));
 //
-//                particles[i].dx += kStiffness * p * x1;
-//                particles[i].dy += kStiffness * p * y1;
-//                particles[j].dx -= kStiffness * p * x1;
-//                particles[j].dy -= kStiffness * p * y1;
+//                particles[i].dx += 0.5f * kStiffness * p;
+//                particles[i].dy += 0.5f * kStiffness * p;
+//                particles[j].dx -= 0.5f * kStiffness * p;
+//                particles[j].dy -= 0.5f * kStiffness * p;
 //            }
 
             // push particles away from walls
-            particles[i].dx += kStiffness * getPushApart(particles[i].x);
-            particles[i].dx -= kStiffness * getPushApart(bounds.getWidth() - particles[i].x);
-            particles[i].dy += kStiffness * getPushApart(particles[i].y);
-            particles[i].dy -= kStiffness * getPushApart(bounds.getHeight() - particles[i].y);
+            particles[i].dx += kStiffness * getPushApart(particles[i].x) * dt;
+            particles[i].dx -= kStiffness * getPushApart(bounds.getWidth() - particles[i].x) * dt;
+            particles[i].dy += kStiffness * getPushApart(particles[i].y) * dt;
+            particles[i].dy -= kStiffness * getPushApart(bounds.getHeight() - particles[i].y) * dt;
         }
 
         // Kinematics
@@ -131,8 +127,8 @@ public class PICSimulation extends Simulation {
 
     private float getPushApart(float d)
     {
-        if(d > 1f / res) return 0f;
-        float v = 1f - res * d;
+        if(d > 0.5f / res) return 0f;
+        float v = 2 * (0.5f - res * d);
         return v*v;
     }
 
@@ -272,12 +268,12 @@ public class PICSimulation extends Simulation {
     {
         for (int i = 0; i < grid.mGridpoints.length; i++) grid.vGridpoints[i].v += -9.81f * dt;
 
-        int maxSteps = 100;
+        int maxSteps = 10;
         float divTolerance = 0f;
         float divergence = Float.MAX_VALUE, s;
-        float oRFactor = 1f; // Over-relaxation factor
+        float oRFactor = 1.25f; // Over-relaxation factor
 
-        float kStiffness = 1f, waterDensity = 1f;
+        float kStiffness = 1f, waterDensity = 4f;
 
         for (int i = 0; i < maxSteps; i++) {
             for (int j = 0; j < grid.cellTypes.length; j++) {
@@ -298,11 +294,18 @@ public class PICSimulation extends Simulation {
                 float s2 = grid.cellTypes[c[2]].s;
                 float s3 = grid.cellTypes[c[3]].s;
 
-//                divergence = u1 + v1 - u2 - v2 - kStiffness * (grid.mGridpoints[j].v - waterDensity);
-                divergence = u1 * s0 + v1 * s1 - u2 * s2 - v2 * s3 - kStiffness * (grid.mGridpoints[j].v - waterDensity);
-
                 s = s0 + s1 + s2 + s3;
+                if(s == 0) continue;
                 s = 1f / s;
+
+                divergence = u1 + v1 - u2 - v2;
+
+                float density = grid.mGridpoints[j].v;
+                if(density > 0f)
+                {
+                    float compression = density - waterDensity;
+                    if(compression > 0f) divergence -= kStiffness * compression;
+                }
 
                 grid.uGridpoints[g[0]].v = u1 - divergence * s0 * s * oRFactor;
                 grid.vGridpoints[g[1]].v = v1 - divergence * s1 * s * oRFactor;

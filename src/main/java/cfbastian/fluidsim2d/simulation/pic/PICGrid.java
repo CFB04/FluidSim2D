@@ -16,18 +16,15 @@ public class PICGrid implements Renderable {
     public final int rows, cols;
     public final float res;
 
-    public PICGrid(Bounds bounds, Bounds windowBounds, int rows, int cols, float res)
+    public PICGrid(Bounds bounds, Bounds windowBounds, int res)
     {
         this.bounds = bounds;
         this.windowBounds = windowBounds;
 
         this.res = res;
 
-        rows += 2;
-        cols += 2;
-
-        this.rows = rows;
-        this.cols = cols;
+        this.cols = (int) (bounds.getWidth() * res) + 2;
+        this.rows = (int) (bounds.getHeight() * res) + 2;
 
         this.mGridpoints = new Gridpoint[rows * cols];
         this.uGridpoints = new Gridpoint[rows * cols];
@@ -170,7 +167,8 @@ public class PICGrid implements Renderable {
             float hScale = windowBounds.getHeight()/bounds.getHeight();
 
             int color = getCellColor(i);
-            renderer.drawRectangle((int) ((mGridpoints[i].x - 0.5f / res) * wScale + windowBounds.getXMin()), (int) ((mGridpoints[i].y + 0.5f / res) * hScale + windowBounds.getYMin()), (int) (wScale/ res), (int) (hScale/ res), color);
+
+            renderer.drawRectangle((int) ((mGridpoints[i].x - 0.5f / res) * wScale + windowBounds.getXMin()), (int) ((mGridpoints[i].y - 0.5f / res) * hScale + windowBounds.getYMin()), (int) (wScale/ res), (int) (hScale/ res), color);
         }
     }
 
@@ -180,7 +178,7 @@ public class PICGrid implements Renderable {
             float wScale = windowBounds.getWidth()/bounds.getWidth();
             float hScale = windowBounds.getHeight()/bounds.getHeight();
 
-            renderer.drawDottedRectangle((int) ((mGridpoints[i].x - 0.5f / res) * wScale + windowBounds.getXMin()), (int) ((mGridpoints[i].y + 0.5f / res) * hScale + windowBounds.getYMin()), (int) (wScale/ res), (int) (hScale/ res), 0xFF888888);
+            renderer.drawDottedRectangle((int) ((mGridpoints[i].x - 0.5f / res) * wScale + windowBounds.getXMin()), (int) ((mGridpoints[i].y - 0.5f / res) * hScale + windowBounds.getYMin()), (int) (wScale/ res), (int) (hScale/ res), 0xFF888888);
             renderer.drawEmptyCircle((int) (mGridpoints[i].x * wScale + windowBounds.getXMin()), (int) (mGridpoints[i].y * hScale + windowBounds.getYMin()), 3, mGridpoints[i].getColor());
             renderer.drawEmptyCircle((int) (uGridpoints[i].x * wScale + windowBounds.getXMin()), (int) (uGridpoints[i].y * hScale + windowBounds.getYMin()), 3, uGridpoints[i].getColor());
             renderer.drawEmptyCircle((int) (vGridpoints[i].x * wScale + windowBounds.getXMin()), (int) (vGridpoints[i].y * hScale + windowBounds.getYMin()), 3, vGridpoints[i].getColor());
