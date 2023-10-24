@@ -5,6 +5,8 @@ import cfbastian.fluidsim2d.simulation.Simulation;
 import cfbastian.fluidsim2d.simulation.util.Bounds;
 import cfbastian.fluidsim2d.simulation.util.SimMath;
 
+import java.util.Random;
+
 
 /**
  * The PIC loop works like this:<br>
@@ -21,14 +23,11 @@ public class PICSimulation extends Simulation {
     private final PICParticle[] particles;
     PICGrid grid;
 
-    private final int[] refGridIdxs;
-    int refGridCols, refGridRows, refGridRes;
-
     private final Bounds windowBounds;
 
     private final float res;
 
-    public PICSimulation(Bounds bounds, Bounds windowBounds, Bounds particleBounds, int res, float refGridResDivisor)
+    public PICSimulation(Bounds bounds, Bounds windowBounds, Bounds particleBounds, int res)
     {
         super(bounds);
         this.windowBounds = windowBounds;
@@ -39,22 +38,27 @@ public class PICSimulation extends Simulation {
         int particlesPerRow = (int) (particleBounds.getWidth() * res * 2);
         int particlesPerCol = (int) (particleBounds.getHeight() * res * 2);
 
-        this.refGridRes = (int) (res / refGridResDivisor);
-        this.refGridCols = (int) (bounds.getWidth() * refGridRes);
-        this.refGridRows = (int) (bounds.getHeight() * refGridRes);
-
         System.out.println("\nNum Particles: " + numParticles);
 
         this.particles = new PICParticle[numParticles];
-        this.refGridIdxs = new int[numParticles];
         this.grid = new PICGrid(bounds, windowBounds, res);
 
-        for (int i = 0; i < numParticles; i++)
-            this.particles[i] = new PICParticle(
-                    particleBounds.getXMin() + 0.5f * particleBounds.getWidth()/(particlesPerRow) + particleBounds.getWidth()/(particlesPerRow) * (i % particlesPerRow),
-                    particleBounds.getYMin() + 0.5f * particleBounds.getHeight()/(particlesPerCol) + particleBounds.getHeight()/(particlesPerCol) * (i / particlesPerRow),
-                    0f, 0f, 0xFF22FFFF, 1f);
+        float jitter = 4f/res;
+        Random r = new Random();
 
+        for (int i = 0; i < numParticles; i++) {
+            this.particles[i] = new PICParticle(
+                    particleBounds.getXMin() + jitter * r.nextFloat() * particleBounds.getWidth() / (particlesPerRow) + particleBounds.getWidth() / (particlesPerRow) * (i % particlesPerRow),
+                    particleBounds.getYMin() + jitter * r.nextFloat() * particleBounds.getHeight() / (particlesPerCol) + particleBounds.getHeight() / (particlesPerCol) * (i / particlesPerRow),
+                    0f, 0f, 0xFF22FFFF, 0.25f);
+            this.particles[i].x = Math.max(bounds.getXMin(), Math.min(bounds.getXMax(), particles[i].x));
+            this.particles[i].y = Math.max(bounds.getYMin(), Math.min(bounds.getYMax(), particles[i].y));
+        }
+//        for (int i = 0; i < numParticles; i++)
+//            this.particles[i] = new PICParticle(
+//                    particleBounds.getXMin() + r.nextFloat() * particleBounds.getWidth(),
+//                    particleBounds.getYMin() + r.nextFloat() * particleBounds.getHeight(),
+//                    0f, 0f, 0xFF22FFFF, 0.25f);
         init();
     }
 
@@ -76,49 +80,20 @@ public class PICSimulation extends Simulation {
             int[] gV = grid.selectGridpoints(grid.selectVGridpoint(particles[i]));
 
             // Receive velocities
-            float x1 = particles[i].x - grid.mGridpoints[gM[0]].x;
-            float y1 = particles[i].y - grid.mGridpoints[gM[0]].y;
-            float x2 = x1 * grid.res, y2 = y1 * grid.res;
+            float x1 = (particles[i].x - grid.mGridpoints[gM[0]].x) * grid.res;
+            float y1 = (particles[i].y - grid.mGridpoints[gM[0]].y) * grid.res;
 
             float vX = SimMath.checkNaNLerp(
-                    SimMath.checkNaNLerp(grid.uGridpoints[gU[0]].v, grid.uGridpoints[gU[1]].v, y2),
-                    SimMath.checkNaNLerp(grid.uGridpoints[gU[2]].v, grid.uGridpoints[gU[3]].v, y2),
-                    (x2 + 0.5f) % 1f);
+                    SimMath.checkNaNLerp(grid.uGridpoints[gU[0]].v, grid.uGridpoints[gU[1]].v, y1),
+                    SimMath.checkNaNLerp(grid.uGridpoints[gU[2]].v, grid.uGridpoints[gU[3]].v, y1),
+                    (x1 + 0.5f) % 1f);
             float vY = SimMath.checkNaNLerp(
-                    SimMath.checkNaNLerp(grid.vGridpoints[gV[0]].v, grid.vGridpoints[gV[2]].v, x2),
-                    SimMath.checkNaNLerp(grid.vGridpoints[gV[1]].v, grid.vGridpoints[gV[3]].v, x2),
-                    (y2 + 0.5f) % 1f);
+                    SimMath.checkNaNLerp(grid.vGridpoints[gV[0]].v, grid.vGridpoints[gV[2]].v, x1),
+                    SimMath.checkNaNLerp(grid.vGridpoints[gV[1]].v, grid.vGridpoints[gV[3]].v, x1),
+                    (y1 + 0.5f) % 1f);
 
             particles[i].dx = vX;
             particles[i].dy = vY;
-
-            // Update references
-            refGridIdxs[i] = selectRefGridCell(particles[i]);
-        }
-
-        // Push particles apart
-        float kStiffness = 1f;
-        for (int i = 0; i < particles.length; i++) {
-//            int[] idxs = selectAdjacentRefGridCells(i);
-//            for (int j = 0; j < refGridIdxs.length; j++) {
-//                int refCell = selectRefGridCell(particles[j]);
-//                if(!(idxs[0] == refCell || idxs[1] == refCell || idxs[2] == refCell || idxs[3] == refCell || idxs[4] == refCell || idxs[5] == refCell || idxs[6] == refCell || idxs[7] == refCell || idxs[8] == refCell))
-//                    continue;
-//
-//                float x = particles[i].x - particles[j].x, y = particles[i].y - particles[j].y;
-//                float p = getPushApart((float) Math.sqrt(x*x + y*y));
-//
-//                particles[i].dx += 0.5f * kStiffness * p;
-//                particles[i].dy += 0.5f * kStiffness * p;
-//                particles[j].dx -= 0.5f * kStiffness * p;
-//                particles[j].dy -= 0.5f * kStiffness * p;
-//            }
-
-            // push particles away from walls
-            particles[i].dx += kStiffness * getPushApart(particles[i].x) * dt;
-            particles[i].dx -= kStiffness * getPushApart(bounds.getWidth() - particles[i].x) * dt;
-            particles[i].dy += kStiffness * getPushApart(particles[i].y) * dt;
-            particles[i].dy -= kStiffness * getPushApart(bounds.getHeight() - particles[i].y) * dt;
         }
 
         // Kinematics
@@ -127,28 +102,9 @@ public class PICSimulation extends Simulation {
 
     private float getPushApart(float d)
     {
-        if(d > 0.5f / res) return 0f;
-        float v = 2 * (0.5f - res * d);
+        if(d > 1f / res) return 0f;
+        float v = (1f - res * d);
         return v*v;
-    }
-
-    private int selectRefGridCell(PICParticle p)
-    {
-        return selectRefGridCell(p.x, p.y);
-    }
-
-    private int selectRefGridCell(float x, float y)
-    {
-        int xi = (int) ((x - bounds.getXMin()) * refGridRes);
-        int yi = (int) ((y - bounds.getYMin()) * refGridRes);
-        if(xi == refGridCols - 1) xi--;
-        if(yi == refGridRows - 1) yi--;
-        return xi + yi * refGridCols;
-    }
-
-    private int[] selectAdjacentRefGridCells(int i)
-    {
-        return new int[]{i, i + 1, i + refGridCols + 1, i + refGridCols, i + refGridCols - 1, i - 1, i - refGridCols - 1, i - refGridCols, i - refGridCols + 1};
     }
 
     /**
@@ -221,24 +177,24 @@ public class PICSimulation extends Simulation {
 
         // Reset wall cells
         for (int x = 0; x < grid.cols; x++) {
-            grid.uGridpoints[x].v = grid.uGridpoints[x + grid.cols].v;
-            grid.uGridpoints[x + grid.cols * (grid.rows - 1)].v = grid.uGridpoints[x + grid.cols * (grid.rows - 2)].v;
+//            grid.uGridpoints[x].v = grid.uGridpoints[x + grid.cols].v;
+//            grid.uGridpoints[x + grid.cols * (grid.rows - 1)].v = grid.uGridpoints[x + grid.cols * (grid.rows - 2)].v;
+//
+//            grid.uGridpoints[x].w = grid.uGridpoints[x + grid.cols].w;
+//            grid.uGridpoints[x + grid.cols * (grid.rows - 1)].w = grid.uGridpoints[x + grid.cols * (grid.rows - 2)].w;
 
-            grid.uGridpoints[x].w = grid.uGridpoints[x + grid.cols].w;
-            grid.uGridpoints[x + grid.cols * (grid.rows - 1)].w = grid.uGridpoints[x + grid.cols * (grid.rows - 2)].w;
-
-            grid.vGridpoints[x].v = 0f;
-            grid.vGridpoints[x + grid.cols * (grid.rows - 2)].v = 0f;
+            grid.vGridpoints[x].v = Math.max(0f, grid.vGridpoints[x].v);
+            grid.vGridpoints[x + grid.cols * (grid.rows - 2)].v = Math.min(0f, grid.vGridpoints[x + grid.cols * (grid.rows - 2)].v);
         }
         for (int y = 0; y < grid.rows; y++) {
-            grid.vGridpoints[y * grid.cols].v = grid.vGridpoints[y * grid.cols + 1].v;
-            grid.vGridpoints[y * grid.cols + grid.cols - 1].v = grid.vGridpoints[y * grid.cols + grid.cols - 2].v;
+//            grid.vGridpoints[y * grid.cols].v = grid.vGridpoints[y * grid.cols + 1].v;
+//            grid.vGridpoints[y * grid.cols + grid.cols - 1].v = grid.vGridpoints[y * grid.cols + grid.cols - 2].v;
+//
+//            grid.vGridpoints[y * grid.cols].w = grid.vGridpoints[y * grid.cols + 1].w;
+//            grid.vGridpoints[y * grid.cols + grid.cols - 1].w = grid.vGridpoints[y * grid.cols + grid.cols - 2].w;
 
-            grid.vGridpoints[y * grid.cols].w = grid.vGridpoints[y * grid.cols + 1].w;
-            grid.vGridpoints[y * grid.cols + grid.cols - 1].w = grid.vGridpoints[y * grid.cols + grid.cols - 2].w;
-
-            grid.uGridpoints[y * grid.cols].v = 0f;
-            grid.uGridpoints[y * grid.cols + grid.cols - 2].v = 0f;
+            grid.uGridpoints[y * grid.cols].v = Math.max(0f, grid.uGridpoints[y * grid.cols].v);
+            grid.uGridpoints[y * grid.cols + grid.cols - 2].v = Math.min(0f, grid.uGridpoints[y * grid.cols + grid.cols - 2].v);
         }
 
         for (int i = 0; i < grid.mGridpoints.length; i++) {
@@ -268,12 +224,11 @@ public class PICSimulation extends Simulation {
     {
         for (int i = 0; i < grid.mGridpoints.length; i++) grid.vGridpoints[i].v += -9.81f * dt;
 
-        int maxSteps = 10;
-        float divTolerance = 0f;
-        float divergence = Float.MAX_VALUE, s;
-        float oRFactor = 1.25f; // Over-relaxation factor
+        int maxSteps = 100;
+        float divergence, s;
+        float oRFactor = 1f; // Over-relaxation factor
 
-        float kStiffness = 1f, waterDensity = 4f;
+        float kStiffness = 1f, waterDensity = 1f;
 
         for (int i = 0; i < maxSteps; i++) {
             for (int j = 0; j < grid.cellTypes.length; j++) {
@@ -312,8 +267,6 @@ public class PICSimulation extends Simulation {
                 grid.uGridpoints[g[2]].v = u2 + divergence * s2 * s * oRFactor;
                 grid.vGridpoints[g[3]].v = v2 + divergence * s3 * s * oRFactor;
             }
-
-            if (Math.abs(divergence) < divTolerance) break;
         }
     }
 

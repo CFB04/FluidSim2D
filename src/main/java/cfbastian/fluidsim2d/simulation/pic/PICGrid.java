@@ -73,8 +73,8 @@ public class PICGrid implements Renderable {
             uGridpoints[i].reset();
             vGridpoints[i].reset();
 
-//            uGridpoints[i].setV(3f * (mGridpoints[i].y - bounds.getCenterY()));
-//            vGridpoints[i].setV(-3f * (mGridpoints[i].x - bounds.getCenterX()));
+//            uGridpoints[i].setV(-2f * (mGridpoints[i].y - bounds.getCenterY()));
+//            vGridpoints[i].setV(2f * (mGridpoints[i].x - bounds.getCenterX()));
 //            uGridpoints[i].incV(1f);
 //            vGridpoints[i].incV(5f);
 //            float x1 = mGridpoints[i].x - bounds.getCenterX(), y1 = mGridpoints[i].y - bounds.getCenterY();
@@ -102,14 +102,14 @@ public class PICGrid implements Renderable {
         }
     }
 
-    private int selectGridpoint(float x, float y)
+    public int selectGridpoint(float x, float y)
     {
         int xi = (int) ((x - bounds.getXMin()) * res);
         int yi = (int) ((y - bounds.getYMin()) * res);
         return xi + yi * cols;
     }
 
-    private int selectCell(float x, float y)
+    public int selectCell(float x, float y)
     {
         int xi = (int) ((x - bounds.getXMin()) * res);
         int yi = (int) ((y - bounds.getYMin()) * res);

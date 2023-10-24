@@ -52,6 +52,33 @@ public class EulerianGrid implements Renderable {
         }
     }
 
+    public int selectGridpoint(float x, float y)
+    {
+        int xi = (int) ((x - bounds.getXMin()) * res);
+        int yi = (int) ((y - bounds.getYMin()) * res);
+        return xi + yi * cols;
+    }
+
+    public int[] selectGridpoints(int i)
+    {
+        return new int[]{i, i + cols, i + 1, i + cols + 1};
+    }
+
+    public int selectMGridpoint(float x, float y)
+    {
+        return selectGridpoint(x + 0.5f / res, y + 0.5f / res);
+    }
+
+    public int selectUGridpoint(float x, float y)
+    {
+        return selectGridpoint(x, y + 0.5f / res);
+    }
+
+    public int selectVGridpoint(float x, float y)
+    {
+        return selectGridpoint(x + 0.5f / res, y);
+    }
+    
     @Override
     public void render(Renderer renderer) {
         renderStaggeredGrid(renderer);
@@ -63,10 +90,10 @@ public class EulerianGrid implements Renderable {
             float wScale = windowBounds.getWidth()/bounds.getWidth();
             float hScale = windowBounds.getHeight()/bounds.getHeight();
 
-            renderer.drawDottedRectangle((int) ((mGridpoints[i].x - 0.5f / res) * wScale + windowBounds.getXMin()), (int) ((mGridpoints[i].y - 0.5f / res) * hScale + windowBounds.getYMin()), (int) (wScale/ res), (int) (hScale/ res), 0xFF888888);
-            renderer.drawEmptyCircle((int) (mGridpoints[i].x * wScale + windowBounds.getXMin()), (int) (mGridpoints[i].y * hScale + windowBounds.getYMin()), 3, mGridpoints[i].getColor());
-            renderer.drawEmptyCircle((int) (uGridpoints[i].x * wScale + windowBounds.getXMin()), (int) (uGridpoints[i].y * hScale + windowBounds.getYMin()), 3, uGridpoints[i].getColor());
-            renderer.drawEmptyCircle((int) (vGridpoints[i].x * wScale + windowBounds.getXMin()), (int) (vGridpoints[i].y * hScale + windowBounds.getYMin()), 3, vGridpoints[i].getColor());
+            renderer.drawDottedRectangle(Math.round((mGridpoints[i].x - 0.5f / res) * wScale + windowBounds.getXMin()), Math.round((mGridpoints[i].y - 0.5f / res) * hScale + windowBounds.getYMin()), Math.round(wScale/ res), Math.round(hScale/ res), 0xFF888888);
+            renderer.drawEmptyCircle(Math.round(mGridpoints[i].x * wScale + windowBounds.getXMin()), Math.round(mGridpoints[i].y * hScale + windowBounds.getYMin()), 3, mGridpoints[i].getColor());
+            renderer.drawEmptyCircle(Math.round(uGridpoints[i].x * wScale + windowBounds.getXMin()), Math.round(uGridpoints[i].y * hScale + windowBounds.getYMin()), 3, uGridpoints[i].getColor());
+            renderer.drawEmptyCircle(Math.round(vGridpoints[i].x * wScale + windowBounds.getXMin()), Math.round(vGridpoints[i].y * hScale + windowBounds.getYMin()), 3, vGridpoints[i].getColor());
         }
     }
 }

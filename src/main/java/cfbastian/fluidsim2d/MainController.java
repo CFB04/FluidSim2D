@@ -5,7 +5,6 @@ import cfbastian.fluidsim2d.simulation.eulerian.EulerianSimulation;
 import cfbastian.fluidsim2d.simulation.heightfield.HeightFieldSimulation;
 import cfbastian.fluidsim2d.simulation.iterativemethods.IterativeSimulation;
 import cfbastian.fluidsim2d.simulation.pic.PICSimulation;
-import cfbastian.fluidsim2d.simulation.sph.SPHParticle;
 import cfbastian.fluidsim2d.simulation.sph.SPHSimulation;
 import cfbastian.fluidsim2d.simulation.util.Bounds;
 import javafx.animation.AnimationTimer;
@@ -80,8 +79,12 @@ public class MainController {
             double elapsedTime = (now - startTime)/1000000000D;
 
             float dt = (float) (elapsedTime - lastTime);
-            if(play) simulation.update(dt * 0.5f);
-            if(play) simulation.update(dt * 0.5f);
+            if(play) {
+                int steps = 1;
+                for (int i = 0; i < steps; i++) {
+                    simulation.update(dt / (float) steps);
+                }
+            }
             if(step) {
                 simulation.update(dt);
                 step = false;
@@ -115,11 +118,11 @@ public class MainController {
                 new Bounds(0f, 16f, 0f, 9f),
                 new Bounds(2, Application.width - 2, 2, Application.height - 2),
                 new Bounds(0.1f, 4.1f, 0.1f, 8.1f),
-                16, 4f);
+                8);
 //        simulation = new HeightFieldSimulation(
 //                new Bounds(0f, 16f/4f, 0f, 9f/4f),
 //                new Bounds(160, Application.width - 160, 90, Application.height - 90),
-//                32, 1f, 1f);
+//                64, 1f, 1f);
 //        simulation = new EulerianSimulation(
 //                new Bounds(0f, 16f, 0f, 9f),
 //                new Bounds(160, Application.width - 160, 90, Application.height - 90),
