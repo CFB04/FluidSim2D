@@ -42,13 +42,59 @@ public class EulerianSimulation extends Simulation {
             float x = grid.uGridpoints[i].x, y = grid.uGridpoints[i].y;
             int[] vs = grid.selectGridpoints(grid.selectVGridpoint(x, y));
 
-            float x1 = (x - grid.vGridpoints[vs[0]].x) * res;
-            float y1 = (y - grid.vGridpoints[vs[0]].y) * res;
+            float dy = SimMath.lerp(
+                    SimMath.lerp(grid.vGridpoints[vs[0]].v, grid.vGridpoints[vs[2]].v, 0.5f),
+                    SimMath.lerp(grid.vGridpoints[vs[1]].v, grid.vGridpoints[vs[3]].v, 0.5f),
+                    0.5f);
 
-            float dy = SimMath.checkNaNLerp(
-                    SimMath.checkNaNLerp(grid.vGridpoints[vs[0]].v, grid.vGridpoints[vs[2]].v, x1),
-                    SimMath.checkNaNLerp(grid.vGridpoints[vs[1]].v, grid.vGridpoints[vs[3]].v, x1),
-                    (y1 + 0.5f) % 1f);
+            float x1 = x - grid.uGridpoints[i].v, y1 = y - dy;
+
+            int[] us = grid.selectGridpoints(grid.selectUGridpoint(x1, y1));
+
+            float xW = (x1 - grid.uGridpoints[us[0]].x) * res;
+            float yW = (y1 - grid.uGridpoints[us[0]].y) * res;
+
+            grid.uGridpoints[i].v = SimMath.checkNaNLerp(
+                    SimMath.checkNaNLerp(grid.uGridpoints[us[0]].v, grid.uGridpoints[us[1]].v, yW),
+                    SimMath.checkNaNLerp(grid.uGridpoints[us[2]].v, grid.uGridpoints[us[3]].v, yW),
+                    xW);
+        }
+
+        for (int i = 0; i < grid.vGridpoints.length; i++) {
+            float x = grid.vGridpoints[i].x, y = grid.vGridpoints[i].y;
+            int[] us = grid.selectGridpoints(grid.selectUGridpoint(x, y));
+
+            float dx = SimMath.lerp(
+                    SimMath.lerp(grid.uGridpoints[us[0]].v, grid.uGridpoints[us[2]].v, 0.5f),
+                    SimMath.lerp(grid.uGridpoints[us[1]].v, grid.uGridpoints[us[3]].v, 0.5f),
+                    0.5f);
+
+            float x1 = x - dx, y1 = y - grid.vGridpoints[i].v;
+
+            int[] vs = grid.selectGridpoints(grid.selectVGridpoint(x1, y1));
+
+            float xW = (x1 - grid.vGridpoints[vs[0]].x) * res;
+            float yW = (y1 - grid.vGridpoints[vs[0]].y) * res;
+
+            grid.uGridpoints[i].v = SimMath.checkNaNLerp(
+                    SimMath.checkNaNLerp(grid.vGridpoints[vs[0]].v, grid.vGridpoints[vs[1]].v, yW),
+                    SimMath.checkNaNLerp(grid.vGridpoints[vs[2]].v, grid.vGridpoints[vs[3]].v, yW),
+                    xW);
+        }
+
+        for (int i = 0; i < grid.mGridpoints.length; i++) {
+            float dx = SimMath.lerp(grid.uGridpoints[i].v, grid.uGridpoints[i-1].v, 0.5f);
+            float dy = SimMath.lerp(grid.vGridpoints[i].v, grid.uGridpoints[i-grid.cols].v, 0.5f);
+
+            float x1 = grid.mGridpoints[i].x - dx, y1 = grid.mGridpoints[i].y - dy;
+            int[] ms = grid.selectGridpoints(grid.selectMGridpoint(x1, y1));
+
+            float xW = (x1 - grid.mGridpoints[ms[0]].x) * res;
+            float yW = (y1 - grid.mGridpoints[ms[0]].y) * res;
+            grid.mGridpoints[i].v = SimMath.checkNaNLerp(
+                    SimMath.checkNaNLerp(grid.mGridpoints[ms[0]].v, grid.mGridpoints[ms[1]].v, yW),
+                    SimMath.checkNaNLerp(grid.mGridpoints[ms[2]].v, grid.mGridpoints[ms[3]].v, yW),
+                    xW);
         }
     }
 

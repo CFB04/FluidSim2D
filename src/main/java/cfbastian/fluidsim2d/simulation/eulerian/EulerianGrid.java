@@ -11,7 +11,7 @@ public class EulerianGrid implements Renderable {
     private final Bounds bounds;
     private final Bounds windowBounds;
     private final float res;
-    private final int rows, cols;
+    public final int rows, cols;
 
     public EulerianGrid(Bounds bounds, Bounds windowBounds, int res)
     {
